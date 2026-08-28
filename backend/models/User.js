@@ -19,8 +19,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String, 
-    enum: ['user', 'admin'], // Chỉ cho phép 2 giá trị: user hoặc admin
-    default: 'user' // Mặc định là user
+    // enum: ['user', 'admin'], // Chỉ cho phép 2 giá trị: user hoặc admin
+    enum: [
+      'member',
+      'group_admin',
+      'moderator',
+      'system_admin'
+    ], 
+    default: 'member' // Mặc định là member
   }
 }, { timestamps: true }); // Tự động tạo createdAt, updatedAt
 

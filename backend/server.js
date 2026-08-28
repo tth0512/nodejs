@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors'; // 1. Import cors
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 
@@ -11,10 +12,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 2. Sử dụng CORS Middleware (Cho phép mọi frontend gọi vào)
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Bắt buộc phải ghi rõ URL của frontend
+  credentials: true
+}));
 
 // Middleware đọc JSON body
 app.use(express.json());
+app.use(cookieParser());
 
 // Khai báo Routes
 app.use('/api/auth', authRoutes);

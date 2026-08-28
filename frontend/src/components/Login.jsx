@@ -16,13 +16,8 @@ function Login({ onLoginSuccess }) {
 
     try {
       const response = await axiosClient.post('/auth/login', { email, password });
-      const { token, user } = response.data;
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      if (onLoginSuccess) onLoginSuccess(user);
-      navigate('/posts'); // Chuyển về trang bài viết
+      if (onLoginSuccess) onLoginSuccess(response.data.user);
+      navigate('/posts'); // Chuyển về trang bài viết               m
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại!');
     }

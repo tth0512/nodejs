@@ -6,6 +6,7 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Cho phép gửi cookie từ frontend sang backend
 });
 
 // Interceptor: Tự động gắn Token từ localStorage trước khi request gửi đi
