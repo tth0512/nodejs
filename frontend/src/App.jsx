@@ -21,7 +21,6 @@ function App() {
         const res = await axiosClient.get('/auth/me');
         setCurrentUser(res.data.user);
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin người dùng:', error);
         setCurrentUser(null);
       } finally {
         setIsAuthLoading(false);
@@ -37,7 +36,6 @@ function App() {
       toast.info('Đã đăng xuất!');
       navigate('/login');
     } catch (error) {
-      console.error('Lỗi khi đăng xuất:', error);
       toast.error('Lỗi khi đăng xuất');
     }
   };
@@ -54,44 +52,98 @@ function App() {
   }
 
   return (
-    <div className="app-wrapper">
-      <header className="app-header">
-        <Link to="/" className="logo-link">
-          <h1 className="app-title">Mini Social</h1>
-        </Link>
+    <div className="universe-layout">
+      {/* CỘT TRÁI: SIDEBAR */}
+      <aside className="sidebar">
+        <div className="logo-container">
+          <Link to="/" className="logo">
+            Uni<span>verse</span>
+          </Link>
+        </div>
 
         <nav className="nav-menu">
-          <Link to="/" className="nav-link">Trang chủ</Link>
-          <Link to="/posts" className="nav-link">Bài viết</Link>
-
-          {currentUser ? (
-            <>
-              <Link to="/create-post" className="nav-link">Tạo bài</Link>
-              <span className="user-badge">Chào, <b>{currentUser.username}</b></span>
-              <button onClick={handleLogout} className="logout-btn">Đăng xuất</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="nav-link">Đăng nhập</Link>
-              <Link to="/register" className="nav-link">Đăng ký</Link>
-            </>
-          )}
+          <Link to="/posts" className="nav-link active">
+            <span className="icon">🏠</span> Home
+          </Link>
+          <Link to="/profile" className="nav-link">
+            <span className="icon">👤</span> Profile
+          </Link>
+          <Link to="/communities" className="nav-link">
+            <span className="icon">👥</span> Explore Communities
+          </Link>
+          <Link to="/settings" className="nav-link">
+            <span className="icon">⚙️</span> Settings
+          </Link>
         </nav>
-      </header>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<Home currentUser={currentUser} />} />
-          <Route path="/posts" element={<PostList currentUser={currentUser} />} />
-          
-          {/* Chuyển hướng người dùng đã login nếu họ lỡ bấm vào /login hoặc /register */}
-          <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login onLoginSuccess={(user) => setCurrentUser(user)} />} />
-          <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
-          
-          {/* BẢO VỆ ROUTE: Chặn người dùng chưa đăng nhập gõ URL vào thẳng trang tạo bài */}
-          <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
-        </Routes>
-      </main>
+        {currentUser && (
+          <div className="my-communities">
+            <div className="communities-header">
+              <h3>My Communities</h3>
+              <span className="badge">19</span>
+            </div>
+            {/* Dummy data cho danh sách nhóm */}
+            <div className="community-item">
+              <div className="avatar">W</div>
+              <div className="info">
+                <h4>Websters Shivaji</h4>
+                <p>764 members</p>
+              </div>
+            </div>
+            <button className="see-all-btn">See All</button>
+          </div>
+        )}
+      </aside>
+
+      {/* KHỐI BÊN PHẢI: HEADER + CONTENT */}
+      <div className="main-wrapper">
+        {/* THANH TRÊN CÙNG: HEADER */}
+        <header className="top-header">
+          {currentUser ? (
+            <div className="header-actions">
+              <button className="icon-btn">💬</button>
+              <button className="icon-btn">🔔</button>
+              <div className="user-profile-dropdown" onClick={handleLogout}>
+                <div className="user-avatar">{currentUser.username.charAt(0).toUpperCase()}</div>
+                <span className="user-name">{currentUser.username} <span>▼</span></span>
+              </div>
+            </div>
+          ) : (
+            <div className="header-actions">
+              <Link to="/login" className="login-btn">Đăng nhập</Link>
+              <Link to="/register" className="register-btn">Đăng ký</Link>
+            </div>
+          )}
+        </header>
+
+        {/* KHU VỰC NỘI DUNG CHÍNH (Cột giữa + Cột phải) */}
+        <main className="content-area">
+          <div className="feed-container">
+            {/* Định tuyến các trang vào đây */}
+            <Routes>
+              <Route path="/" element={<Navigate to="/posts" />} />
+              <Route path="/posts" element={<PostList currentUser={currentUser} />} />
+              <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login onLoginSuccess={(user) => setCurrentUser(user)} />} />
+              <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
+              <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
+            </Routes>
+          </div>
+
+          {/* CỘT PHẢI (Chỉ hiện khi ở màn hình lớn) */}
+          <div className="right-panel">
+            <div className="widget">
+              <h3>Based on your communities</h3>
+              {/* Sẽ render danh sách gợi ý nhóm ở đây */}
+              <div className="widget-placeholder">List communities...</div>
+            </div>
+            <div className="widget">
+              <h3>People you may know</h3>
+              {/* Sẽ render danh sách gợi ý kết bạn ở đây */}
+              <div className="widget-placeholder">List people...</div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

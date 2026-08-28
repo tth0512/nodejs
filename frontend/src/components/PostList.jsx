@@ -1,11 +1,11 @@
 // src/components/PostList.jsx
 import { useEffect, useState } from 'react';
-import { FiTrash2, FiUser, FiClock } from 'react-icons/fi';
+import { FiTrash2, FiClock, FiHeart, FiMessageSquare } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale'; // Hỗ trợ định dạng tiếng Việt
+import { vi } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import axiosClient from '../api/axiosClient.js';
-import './PostList.css';
+import './PostList.css'; // Đảm bảo bạn đã đưa CSS vào file này hoặc App.css
 
 function PostList({ currentUser, refreshTrigger }) {
   const [postState, setPostState] = useState({
@@ -46,7 +46,6 @@ function PostList({ currentUser, refreshTrigger }) {
     }
   };
 
-  // Hàm chuyển đổi timestamp thành định dạng "x phút trước"
   const formatTime = (dateString) => {
     if (!dateString) return 'Vừa xong';
     try {
@@ -59,50 +58,93 @@ function PostList({ currentUser, refreshTrigger }) {
     }
   };
 
-  if (postState.loading) return <p style={{ textAlign: 'center' }}>Đang tải bài viết...</p>;
+  if (postState.loading) return <div style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280' }}>Đang tải bảng tin...</div>;
+  if (postState.data.length === 0) return <div style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280' }}>Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!</div>;
 
   return (
-    <div className="post-list-container">
-      <h2 className="post-list-header">Bảng tin</h2>
-      {postState.data.length === 0 ? (
-        <p>Chưa có bài viết nào.</p>
-      ) : (
-        postState.data.map((post) => {
-          const canDelete = currentUser && (
-            (
-              (currentUser.id && post.author?.id && currentUser.id === post.author?.id) ||
-              (currentUser._id && post.author?._id && currentUser._id === post.author?._id)
-            ) ||
-            ['moderator', 'system_admin'].includes(currentUser.role)
-          );
+    <div className="post-list">
+      {postState.data.map((post) => {
+        const canDelete = currentUser && (
+          (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id) ||
+          ['moderator', 'system_admin'].includes(currentUser.role)
+        );
 
-          return (
-            <div key={post._id} className="post-item">
-              <div className="post-item-header">
-                <h3 className="post-item-title">{post.title}</h3>
-                {canDelete && (
-                  <button onClick={() => handleDelete(post._id)} className="delete-btn" title="Xóa bài">
-                    <FiTrash2 />
-                  </button>
-                )}
+        return (
+          <div key={post._id} className="post-card">
+            
+            {/* 1. HEADER: Thông tin tác giả và nút Xóa */}
+            <div className="post-header">
+              <div className="post-author-info">
+                <div className="author-avatar">
+                  {post.author?.username ? post.author.username.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="author-meta">
+                  <div>
+                    <span className="author-name">
+                      {currentUser && (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id)
+                        ? 'You' 
+                        : (post.author?.username || 'Ẩn danh')}
+                    </span>
+                    <span className="community-name"> &gt; Cộng đồng chung</span>
+                  </div>
+                  {/* Hiển thị thời gian (x phút trước) */}
+                  <span style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }} title={post.createdAt}>
+                    <FiClock /> {formatTime(post.createdAt)}
+                  </span>
+                </div>
               </div>
 
-              <p className="post-item-content">{post.content}</p>
+              {canDelete && (
+                <button onClick={() => handleDelete(post._id)} className="delete-btn" title="Xóa bài viết">
+                  <FiTrash2 />
+                </button>
+              )}
+            </div>
 
-              {/* Phần thông tin chân bài viết */}
-              <div className="post-item-footer">
-                <span className="post-author-info">
-                  <FiUser /> Tác giả: <b>{post.author?.username || 'Ẩn danh'}</b>
-                </span>
-
-                <span className="post-time-info" title={post.createdAt}>
-                  <FiClock /> {formatTime(post.createdAt)}
-                </span>
+            {/* 2. BODY: Nội dung chữ và Ảnh đính kèm */}
+            <div className="post-body">
+              {/* Giữ lại hiển thị Tiêu đề bài viết */}
+              {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
+              
+              <p className="post-content">{post.content}</p>
+              
+              {/* Placeholder cho ảnh bìa */}
+              <div className="post-image-placeholder">
+                <img 
+                  src={`https://picsum.photos/seed/${post._id}/800/400`} 
+                  alt="Post Cover" 
+                  className="post-cover"
+                />
               </div>
             </div>
-          );
-        })
-      )}
+
+            {/* 3. FOOTER: Các nút tương tác */}
+            <div className="post-actions">
+              <button className="action-btn">
+                <FiHeart className="icon" /> 
+                <span>Thích</span>
+              </button>
+              <button className="action-btn">
+                <FiMessageSquare className="icon" /> 
+                <span>Bình luận</span>
+              </button>
+            </div>
+
+            {/* 4. COMMENTS: Mockup hiển thị bình luận */}
+            <div className="post-comments-section">
+              <span className="comments-title">Comments:</span>
+              <div className="comment-item">
+                <div className="comment-avatar">E</div>
+                <div className="comment-bubble">
+                  <h5 className="comment-author">Elon Musk</h5>
+                  <p className="comment-text">Tuyệt vời! Ý tưởng rất hay.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        );
+      })}
     </div>
   );
 }
