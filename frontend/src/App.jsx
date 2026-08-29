@@ -1,12 +1,15 @@
 // src/App.jsx
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
 import CreatePost from './components/CreatePost.jsx';
 import PostList from './components/PostList.jsx';
+import Header from './components/Header.jsx';
+import Sidebar from './components/Sidebar.jsx';
+import Profile from './components/Profile.jsx';
 import axiosClient from './api/axiosClient.js';
 import './App.css';
 
@@ -54,91 +57,32 @@ function App() {
   return (
     <div className="universe-layout">
       {/* CỘT TRÁI: SIDEBAR */}
-      <aside className="sidebar">
-        <div className="logo-container">
-          <Link to="/" className="logo">
-            Uni<span>verse</span>
-          </Link>
-        </div>
-
-        <nav className="nav-menu">
-          <Link to="/posts" className="nav-link active">
-            <span className="icon">🏠</span> Home
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="icon">👤</span> Profile
-          </Link>
-          <Link to="/communities" className="nav-link">
-            <span className="icon">👥</span> Explore Communities
-          </Link>
-          <Link to="/settings" className="nav-link">
-            <span className="icon">⚙️</span> Settings
-          </Link>
-        </nav>
-
-        {currentUser && (
-          <div className="my-communities">
-            <div className="communities-header">
-              <h3>My Communities</h3>
-              <span className="badge">19</span>
-            </div>
-            {/* Dummy data cho danh sách nhóm */}
-            <div className="community-item">
-              <div className="avatar">W</div>
-              <div className="info">
-                <h4>Websters Shivaji</h4>
-                <p>764 members</p>
-              </div>
-            </div>
-            <button className="see-all-btn">See All</button>
-          </div>
-        )}
-      </aside>
+      <Sidebar currentUser={currentUser} />
 
       {/* KHỐI BÊN PHẢI: HEADER + CONTENT */}
       <div className="main-wrapper">
-        {/* THANH TRÊN CÙNG: HEADER */}
-        <header className="top-header">
-          {currentUser ? (
-            <div className="header-actions">
-              <button className="icon-btn">💬</button>
-              <button className="icon-btn">🔔</button>
-              <div className="user-profile-dropdown" onClick={handleLogout}>
-                <div className="user-avatar">{currentUser.username.charAt(0).toUpperCase()}</div>
-                <span className="user-name">{currentUser.username} <span>▼</span></span>
-              </div>
-            </div>
-          ) : (
-            <div className="header-actions">
-              <Link to="/login" className="login-btn">Đăng nhập</Link>
-              <Link to="/register" className="register-btn">Đăng ký</Link>
-            </div>
-          )}
-        </header>
+        <Header currentUser={currentUser} onLogout={handleLogout} />
 
-        {/* KHU VỰC NỘI DUNG CHÍNH (Cột giữa + Cột phải) */}
         <main className="content-area">
           <div className="feed-container">
-            {/* Định tuyến các trang vào đây */}
-            <Routes>
-              <Route path="/" element={<Navigate to="/posts" />} />
-              <Route path="/posts" element={<PostList currentUser={currentUser} />} />
-              <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login onLoginSuccess={(user) => setCurrentUser(user)} />} />
-              <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
-              <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
-            </Routes>
+             <Routes>
+                <Route path="/" element={<Navigate to="/posts" />} />
+                <Route path="/posts" element={<PostList currentUser={currentUser} />} />
+                <Route path="/profile" element={currentUser ? <Profile currentUser={currentUser} /> : <Navigate to="/login" />} />
+                <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login onLoginSuccess={setCurrentUser} />} />
+                <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
+                <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
+              </Routes>
           </div>
 
-          {/* CỘT PHẢI (Chỉ hiện khi ở màn hình lớn) */}
+          {/* CỘT PHẢI */}
           <div className="right-panel">
             <div className="widget">
               <h3>Based on your communities</h3>
-              {/* Sẽ render danh sách gợi ý nhóm ở đây */}
               <div className="widget-placeholder">List communities...</div>
             </div>
             <div className="widget">
               <h3>People you may know</h3>
-              {/* Sẽ render danh sách gợi ý kết bạn ở đây */}
               <div className="widget-placeholder">List people...</div>
             </div>
           </div>

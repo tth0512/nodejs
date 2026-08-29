@@ -4,7 +4,8 @@ import Post from '../models/Post.js';
 // 1. Lấy danh sách bài viết (Public)
 export const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find().populate('author', 'username email').sort({ createdAt: -1 });
+    const query = req.query.author ? { author: req.query.author } : {};
+    const posts = await Post.find(query).populate('author', 'username email').sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -1,6 +1,6 @@
 // backend/routes/authRoutes.js
 import express from 'express';
-import { register, login, logout, getMe } from '../controllers/authController.js';
+import { register, login, logout, getMe, updateProfile } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -16,5 +16,8 @@ router.post('/logout', logout);
 
 // Route để Frontend kiểm tra lại Cookie mỗi khi load trang (cần đi qua cổng bảo vệ 'protect')
 router.get('/me', protect, getMe);
+
+// Route PUT để cập nhật profile (Yêu cầu phải đăng nhập nên có protect)
+router.put('/profile', protect, updateProfile);
 
 export default router;

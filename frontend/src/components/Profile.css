@@ -1,0 +1,273 @@
+/* src/components/Profile.css */
+.profile-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+.profile-page-header {
+  margin-bottom: 25px;
+}
+
+.profile-page-header h2 {
+  font-size: 22px;
+  color: #1e293b;
+  margin: 0 0 5px 0;
+}
+
+.profile-page-header p {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Card chính */
+.profile-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
+}
+
+/* Ảnh bìa Gradient */
+.profile-cover {
+  height: 140px;
+  width: 100%;
+  background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
+  /* Nếu muốn màu dịu giống ảnh thiết kế thì dùng mã này: */
+  background: linear-gradient(to right, #d6e4ff, #fff1eb);
+}
+
+/* Header của Profile (Avatar đè lên cover) */
+.profile-top-section {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 30px;
+  margin-top: -45px; /* Kéo khối này đè lên ảnh bìa */
+  margin-bottom: 30px;
+}
+
+.avatar-wrapper {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: white;
+  padding: 4px; /* Viền trắng mỏng bọc ngoài */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  background-color: #1e293b;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.profile-titles {
+  margin-left: 20px;
+  margin-bottom: 5px;
+  flex-grow: 1;
+}
+
+.profile-titles h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.profile-titles p {
+  margin: 4px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.edit-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #2563eb;
+}
+
+/* Lưới Form Input */
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 cột bằng nhau */
+  gap: 25px;
+  padding: 0 30px 30px 30px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.form-group input,
+.form-group select {
+  padding: 14px 16px;
+  background-color: #f8fafc; /* Nền xám nhạt */
+  border: 1px solid transparent; /* Không viền */
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+  transition: 0.2s;
+  -webkit-appearance: none; /* Bỏ mũi tên mặc định của select */
+}
+
+/* Nút mũi tên giả cho select */
+.form-group select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px top 50%;
+  background-size: 10px auto;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+
+/* Khu vực Email */
+.profile-email-section {
+  padding: 0 30px 40px 30px;
+}
+
+.section-title {
+  font-size: 16px;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.email-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.email-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.email-info p {
+  margin: 0;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.email-info span {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.add-email-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-email-btn:hover {
+  background-color: #dbeafe;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 0 30px 30px;
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.profile-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-stats strong { font-size: 20px; color: #0f172a; }
+.profile-stats span, .profile-posts p, .profile-posts time { color: #64748b; font-size: 13px; }
+
+.profile-privacy, .profile-posts {
+  padding: 0 30px 30px;
+}
+
+.profile-privacy .section-title, .profile-posts .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.privacy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.privacy-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.privacy-grid select {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.profile-post {
+  padding: 15px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-post h5, .profile-post p { margin: 0 0 6px; }
+.profile-post h5 { color: #0f172a; font-size: 15px; }

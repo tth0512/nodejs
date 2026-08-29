@@ -1,0 +1,82 @@
+/* ================= DROPDOWN MENU AVATAR ================= */
+.user-profile-container {
+  position: relative; 
+}
+
+.user-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  user-select: none; /* Tránh bôi đen text khi click */
+}
+
+.user-profile-trigger:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%; /* Nằm ngay dưới avatar và cách ra 1 tí */
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Đổ bóng nhẹ nhàng */
+  width: 200px;
+  display: flex;
+  flex-direction: column; /* Bắt buộc xếp dọc */
+  z-index: 1000;
+  padding: 8px 0; /* Cách đều trên dưới */
+}
+
+.dropdown-item {
+  padding: 12px 20px;
+  text-decoration: none !important; /* Xóa gạch chân */
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown-item .item-icon {
+  font-size: 16px;
+  color: #6b7280; /* Màu xám cho icon */
+  transition: color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f9fafb; /* Đổi màu nền sáng khi di chuột */
+  color: var(--primary-color);
+}
+
+.dropdown-item:hover .item-icon {
+  color: var(--primary-color); /* Đổi màu icon khi hover */
+}
+
+/* Nút đăng xuất màu đỏ */
+.dropdown-item.text-danger:hover {
+  color: #ef4444; 
+}
+.dropdown-item.text-danger:hover .item-icon {
+  color: #ef4444;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 6px 0;
+}

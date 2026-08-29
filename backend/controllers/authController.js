@@ -94,10 +94,32 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
     }
 
-    res.status(200).json({ 
-      success: true, 
-      user: { id: user._id, username: user.username, email: user.email, role: user.role } 
-    });
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 5. UPDATE PROFILE - Cập nhật thông tin cá nhân
+// Cập nhật thông tin Profile cá nhân
+export const updateProfile = async (req, res) => {
+  try {
+    const {
+      fullName, studentId, major, cohort, skills, interests,
+      privacyProfile, privacyContact
+    } = req.body;
+    
+    // Tìm và update User dựa trên ID lấy từ Token (ngăn không cho sửa tài khoản người khác)
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId, 
+      {
+        fullName, studentId, major, cohort, skills, interests,
+        privacyProfile, privacyContact
+      },
+      { new: true, runValidators: true } // Trả về data mới sau khi update
+    ).select('-password');
+
+    res.status(200).json({ success: true, message: 'Cập nhật hồ sơ thành công', user: updatedUser });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
