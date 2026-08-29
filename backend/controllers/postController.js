@@ -15,7 +15,7 @@ export const getPosts = async (req, res) => {
 // 2. Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, imageUrl } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Vui lòng điền đủ title và content!' });
@@ -24,10 +24,13 @@ export const createPost = async (req, res) => {
     const newPost = await Post.create({
       title,
       content,
-      author: req.user.userId 
+      imageUrl: imageUrl || '',
+      author: req.user.userId
     });
 
-    res.status(201).json({ success: true, data: newPost });
+    const populatedPost = await Post.findById(newPost._id).populate('author', 'username email');
+
+    res.status(201).json({ success: true, data: populatedPost });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -49,9 +52,12 @@ export const updatePost = async (req, res) => {
       });
     }
 
-    const { title, content } = req.body;
+    const { title, content, imageUrl } = req.body;
     post.title = title || post.title;
     post.content = content || post.content;
+    if (imageUrl !== undefined) {
+      post.imageUrl = imageUrl;
+    }
 
     const updatedPost = await post.save();
     res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: updatedPost });

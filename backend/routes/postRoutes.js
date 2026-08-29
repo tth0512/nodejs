@@ -2,6 +2,7 @@
 import express from 'express';
 import { getPosts, createPost, updatePost, deletePost } from '../controllers/postController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { uploadCloud } from '../utils/cloudinaryConfig.js';
 
 const router = express.Router();
 
@@ -9,7 +10,9 @@ const router = express.Router();
 router.get('/', getPosts);
 
 // Route POST: Tạo bài viết (Bắt buộc đăng nhập)
-router.post('/', protect, createPost);
+// router.post('/', protect, createPost);
+
+router.post('/', protect, uploadCloud.single('image'), createPost);
 
 // Route PUT: Sửa bài viết (Bắt buộc đăng nhập)
 router.put('/:id', protect, updatePost);

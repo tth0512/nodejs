@@ -10,7 +10,25 @@ import './PostList.css'; // Đảm bảo bạn đã đưa CSS vào file này ho�
 function CreatePostBox({ currentUser, onPostCreated }) {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning('Ảnh tối đa 5MB. Vui lòng chọn hình nhỏ hơn.');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImageUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleCreatePost = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
@@ -20,16 +38,17 @@ function CreatePostBox({ currentUser, onPostCreated }) {
 
     setIsSubmitting(true);
     try {
-      const res = await axiosClient.post('/posts', { 
-        title: newTitle, 
-        content: newContent 
+      const res = await axiosClient.post('/posts', {
+        title: newTitle,
+        content: newContent,
+        imageUrl
       });
-      
-      // Gọi hàm callback từ component cha truyền xuống để đẩy bài mới lên top
+
       onPostCreated(res.data.data);
 
       setNewTitle('');
       setNewContent('');
+      setImageUrl('');
       toast.success('Đăng bài thành công!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Lỗi khi đăng bài');
@@ -38,7 +57,6 @@ function CreatePostBox({ currentUser, onPostCreated }) {
     }
   };
 
-  // Khách chưa đăng nhập thì không render khung này
   if (!currentUser) return null;
 
   return (
@@ -48,28 +66,49 @@ function CreatePostBox({ currentUser, onPostCreated }) {
           {currentUser.username.charAt(0).toUpperCase()}
         </div>
         <div className="create-post-inputs">
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="create-input-title"
-            placeholder="Tiêu đề bài viết..." 
+            placeholder="Tiêu đề bài viết..."
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
           />
-          <textarea 
+          <textarea
             className="create-input-content"
             placeholder={`${currentUser.username} ơi, bạn đang nghĩ gì thế?`}
             rows="3"
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
           ></textarea>
+
+          {imageUrl && (
+            <div className="image-preview-container">
+              <img src={imageUrl} alt="Preview" className="image-preview" />
+              <button
+                type="button"
+                className="remove-image-btn"
+                onClick={() => setImageUrl('')}
+                aria-label="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="create-post-bottom">
-        <button className="attach-btn" title="Chức năng đang phát triển">
+        <input
+          id="post-image-upload"
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleImageChange}
+        />
+        <label htmlFor="post-image-upload" className="attach-btn" title="Tải ảnh lên">
           <FiImage /> Ảnh/Video
-        </button>
-        <button 
-          className="submit-post-btn" 
+        </label>
+        <button
+          className="submit-post-btn"
           onClick={handleCreatePost}
           disabled={isSubmitting || !newTitle.trim() || !newContent.trim()}
         >
@@ -87,9 +126,21 @@ function PostList({ currentUser, refreshTrigger }) {
   });
 
   const handlePostCreated = (newPost) => {
+    const normalizedPost = {
+      ...newPost,
+      author: newPost?.author?.username
+        ? newPost.author
+        : {
+            _id: currentUser?._id || currentUser?.id,
+            username: currentUser?.username || 'You',
+            email: currentUser?.email || ''
+          },
+      createdAt: newPost?.createdAt || new Date().toISOString()
+    };
+
     setPostState((prev) => ({
       ...prev,
-      data: [newPost, ...prev.data]
+      data: [normalizedPost, ...prev.data]
     }));
   };
 
@@ -143,9 +194,9 @@ function PostList({ currentUser, refreshTrigger }) {
 
   return (
     <div className="post-list">
-      <CreatePostBox 
-        currentUser={currentUser} 
-        onPostCreated={handlePostCreated} 
+      <CreatePostBox
+        currentUser={currentUser}
+        onPostCreated={handlePostCreated}
       />
 
       {postState.data.map((post) => {
@@ -156,7 +207,7 @@ function PostList({ currentUser, refreshTrigger }) {
 
         return (
           <div key={post._id} className="post-card">
-            
+
             {/* 1. HEADER: Thông tin tác giả và nút Xóa */}
             <div className="post-header">
               <div className="post-author-info">
@@ -167,7 +218,7 @@ function PostList({ currentUser, refreshTrigger }) {
                   <div>
                     <span className="author-name">
                       {currentUser && (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id)
-                        ? 'You' 
+                        ? 'You'
                         : (post.author?.username || 'Ẩn danh')}
                     </span>
                     <span className="community-name"> &gt; Cộng đồng chung</span>
@@ -190,27 +241,24 @@ function PostList({ currentUser, refreshTrigger }) {
             <div className="post-body">
               {/* Giữ lại hiển thị Tiêu đề bài viết */}
               {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
-              
+
               <p className="post-content">{post.content}</p>
-              
-              {/* Placeholder cho ảnh bìa */}
-              <div className="post-image-placeholder">
-                <img 
-                  src={`https://picsum.photos/seed/${post._id}/800/400`} 
-                  alt="Post Cover" 
-                  className="post-cover"
-                />
-              </div>
+
+              {post.imageUrl && (
+                <div className="post-image-placeholder">
+                  <img src={post.imageUrl} alt="Post Cover" className="post-cover" />
+                </div>
+              )}
             </div>
 
             {/* 3. FOOTER: Các nút tương tác */}
             <div className="post-actions">
               <button className="action-btn">
-                <FiHeart className="icon" /> 
+                <FiHeart className="icon" />
                 <span>Thích</span>
               </button>
               <button className="action-btn">
-                <FiMessageSquare className="icon" /> 
+                <FiMessageSquare className="icon" />
                 <span>Bình luận</span>
               </button>
             </div>

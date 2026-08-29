@@ -6,7 +6,7 @@ function Sidebar({ currentUser }) {
     <aside className="sidebar">
       <div className="logo-container">
         <Link to="/" className="logo">
-          Uni<span>verse</span>
+          UniConnect
         </Link>
       </div>
 

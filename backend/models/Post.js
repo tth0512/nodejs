@@ -14,7 +14,8 @@ const postSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Lưu ID của User
     ref: 'User', // Liên kết tới bảng User
     required: true
-  }
+  },
+  imageUrl: { type: String, default: '' },
 }, { timestamps: true });
 
 const Post = mongoose.model('Post', postSchema);
