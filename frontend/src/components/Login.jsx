@@ -2,13 +2,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosClient from '../api/axiosClient.js';
+import { useAuth } from '../context/utils/useAuth.js';
 import './Login.css';
 
-function Login({ onLoginSuccess }) {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,8 +18,8 @@ function Login({ onLoginSuccess }) {
 
     try {
       const response = await axiosClient.post('/auth/login', { email, password });
-      if (onLoginSuccess) onLoginSuccess(response.data.user);
-      navigate('/posts'); // Chuyển về trang bài viết               m
+      login(response.data.user);
+      navigate('/posts');
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại!');
     }
