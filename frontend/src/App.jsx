@@ -7,11 +7,11 @@ import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
 import CreatePost from './components/CreatePost.jsx';
-import EditPost from './components/EditPost.jsx';
 import PostList from './components/PostList.jsx';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import Profile from './components/Profile.jsx';
+import UserProfile from './components/UserProfile.jsx';
 import './App.css';
 
 function App() {
@@ -52,8 +52,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/posts" />} />
               <Route path="/posts" element={<PostList />} />
-              <Route path="/edit-post/:postId" element={currentUser ? <EditPost /> : <Navigate to="/login" />} />
               <Route path="/profile" element={currentUser ? <Profile /> : <Navigate to="/login" />} />
+              <Route path="/users/:userId" element={<UserProfile />} />
               <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login />} />
               <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
               <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />

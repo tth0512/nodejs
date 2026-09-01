@@ -1,11 +1,12 @@
 // src/components/Profile.jsx
 import { useEffect, useState } from 'react';
-import { FiEdit, FiMail, FiPlus, FiX, FiSave, FiLock, FiUsers } from 'react-icons/fi';
-import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { FiEdit, FiMail, FiPlus, FiX, FiSave, FiLock, FiUsers, FiClock, FiHeart, FiMessageSquare } from 'react-icons/fi';
+import { format, formatDistanceToNow } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
 import { useAuth } from '../context/utils/useAuth.js';
 import axiosClient from '../api/axiosClient.js';
 import './Profile.css';
+import './PostList.css';
 
 function Profile() {
   const { currentUser } = useAuth();
@@ -193,15 +194,74 @@ function Profile() {
 
         <section className="profile-posts">
           <h4 className="section-title"><FiUsers /> Your posts</h4>
-          {postsLoading && <p>Loading posts...</p>}
-          {!postsLoading && posts.length === 0 && <p>No posts yet.</p>}
-          {!postsLoading && posts.map((post) => (
-            <article className="profile-post" key={post._id}>
-              <h5>{post.title}</h5>
-              <p>{post.content}</p>
-              <time dateTime={post.createdAt}>{post.createdAt ? format(new Date(post.createdAt), 'dd MMM yyyy') : ''}</time>
-            </article>
-          ))}
+          {postsLoading && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Loading posts...</p>}
+          {!postsLoading && posts.length === 0 && (
+            <p style={{ color: '#94a3b8', fontSize: '14px' }}>No posts yet.</p>
+          )}
+          {!postsLoading && posts.length > 0 && (
+            <div className="post-list" style={{ marginTop: '16px' }}>
+              {posts.map((post) => {
+                const isEdited = post.updatedAt && post.createdAt &&
+                  new Date(post.updatedAt) - new Date(post.createdAt) > 2000;
+                const displayTime = isEdited
+                  ? formatDistanceToNow(new Date(post.updatedAt), { addSuffix: true, locale: vi })
+                  : formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: vi });
+
+                return (
+                  <div key={post._id} className="post-card">
+                    {/* Header */}
+                    <div className="post-header">
+                      <div className="post-author-info">
+                        <div className="author-avatar">
+                          {(profile.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="author-meta">
+                          <div>
+                            <span className="author-name">You</span>
+                            <span className="community-name"> &gt; Cộng đồng chung</span>
+                          </div>
+                          <span
+                            style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title={isEdited
+                              ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
+                              : new Date(post.createdAt).toLocaleString('vi-VN')}
+                          >
+                            <FiClock /> {displayTime}
+                            {isEdited && (
+                              <span className="edited-badge"> · Đã chỉnh sửa</span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="post-body">
+                      {post.title && (
+                        <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>
+                      )}
+                      <p className="post-content">{post.content}</p>
+                      {post.imageUrl && (
+                        <div className="post-image-placeholder">
+                          <img src={post.imageUrl} alt="Post" className="post-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="post-actions">
+                      <button className="action-btn">
+                        <FiHeart className="icon" /><span>Thích</span>
+                      </button>
+                      <button className="action-btn">
+                        <FiMessageSquare className="icon" /><span>Bình luận</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <div className="profile-email-section">

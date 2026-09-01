@@ -271,3 +271,31 @@
 
 .profile-post h5, .profile-post p { margin: 0 0 6px; }
 .profile-post h5 { color: #0f172a; font-size: 15px; }
+
+/* Back button for UserProfile page */
+.userprofile-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.userprofile-back-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+/* Hover highlight for clickable author names in posts */
+.author-name[style*="cursor: pointer"]:hover {
+  color: var(--primary-color, #ff3366);
+  text-decoration: underline;
+}

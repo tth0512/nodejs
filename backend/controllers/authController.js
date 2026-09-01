@@ -124,3 +124,19 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// 6. GET USER BY ID - Lấy thông tin public của người dùng khác
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
