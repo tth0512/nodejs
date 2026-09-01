@@ -14,6 +14,7 @@ function Sidebar() {
       </div>
 
       <nav className="nav-menu">
+        {/* Dùng NavLink thay cho Link để tự động bắt class 'active' */}
         <NavLink to="/posts" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
           <span className="icon">🏠</span> Home
         </NavLink>
