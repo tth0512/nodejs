@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import { FiEdit, FiMail, FiPlus, FiX, FiSave, FiLock, FiUsers } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { useAuth } from '../context/utils/useAuth.js';
 import axiosClient from '../api/axiosClient.js';
 import './Profile.css';
 
-function Profile({ currentUser }) {
+function Profile() {
+  const { currentUser } = useAuth();
   const currentDate = format(new Date(), 'EEE, dd MMMM yyyy', { locale: enUS });
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(currentUser || {});

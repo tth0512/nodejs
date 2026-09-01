@@ -2,7 +2,7 @@
 import express from 'express';
 import { getPosts, createPost, updatePost, deletePost } from '../controllers/postController.js';
 import { protect } from '../middleware/authMiddleware.js';
-import { uploadCloud } from '../utils/cloudinaryConfig.js';
+import { uploadCloud } from '../utlis/cloudinaryConfig.js';
 
 const router = express.Router();
 

@@ -1,4 +1,4 @@
-// src/api/axiosClient.js
+﻿// src/api/axiosClient.js
 import axios from 'axios';
 
 const axiosClient = axios.create({
@@ -6,14 +6,14 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Cho phép gửi cookie từ frontend sang backend
+  withCredentials: true,
 });
 
 // Interceptor: Tự động gắn Token từ localStorage trước khi request gửi đi
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = "Bearer " + token;
   }
   return config;
 }, (error) => {

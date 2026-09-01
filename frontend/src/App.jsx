@@ -1,60 +1,80 @@
-// src/components/Login.jsx
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axiosClient from '../api/axiosClient.js';
-import { useAuth } from '../context/useAuth.js';
-import './Login.css';
+// src/App.jsx
+import { useNavigate, Navigate, Routes, Route } from 'react-router-dom';
+import { useAuth } from './context/utils/useAuth.js';
+import { toast } from 'react-toastify';
+import axiosClient from './api/axiosClient.js';
+import Home from './components/Home.jsx';
+import Login from './components/Login.jsx';
+import Register from './components/Register.jsx';
+import CreatePost from './components/CreatePost.jsx';
+import EditPost from './components/EditPost.jsx';
+import PostList from './components/PostList.jsx';
+import Header from './components/Header.jsx';
+import Sidebar from './components/Sidebar.jsx';
+import Profile from './components/Profile.jsx';
+import './App.css';
 
-function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+function App() {
+  const { currentUser, isAuthLoading, logout } = useAuth();
   const navigate = useNavigate();
-  const { login } = useAuth();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-
+  const handleLogout = async () => {
     try {
-      const response = await axiosClient.post('/auth/login', { email, password });
-      login(response.data.user);
-      navigate('/posts');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại!');
+      await logout();
+      toast.info('Đã đăng xuất!');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Lỗi khi đăng xuất');
     }
   };
 
+  if (isAuthLoading) {
+    return (
+      <div className="app-wrapper">
+        <div style={{ textAlign: 'center', marginTop: '100px', color: '#64748b' }}>
+          Đang tải dữ liệu...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="auth-container">
-      <h2 className="auth-title">Đăng nhập tài khoản</h2>
-      {error && <div className="auth-error">{error}</div>}
+    <div className="universe-layout">
+      {/* CỘT TRÁI: SIDEBAR */}
+      <Sidebar />
 
-      <form onSubmit={handleLogin} className="auth-form">
-        <input
-          type="email"
-          placeholder="Địa chỉ Email"
-          className="auth-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          className="auth-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="auth-btn">Đăng nhập</button>
-      </form>
+      {/* KHỐI BÊN PHẢI: HEADER + CONTENT */}
+      <div className="main-wrapper">
+        <Header onLogout={handleLogout} />
 
-      <div className="auth-switch">
-        Chưa có tài khoản? <Link to="/register" className="auth-switch-link">Đăng ký ngay</Link>
+        <main className="content-area">
+          <div className="feed-container">
+            <Routes>
+              <Route path="/" element={<Navigate to="/posts" />} />
+              <Route path="/posts" element={<PostList />} />
+              <Route path="/edit-post/:postId" element={currentUser ? <EditPost /> : <Navigate to="/login" />} />
+              <Route path="/profile" element={currentUser ? <Profile /> : <Navigate to="/login" />} />
+              <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login />} />
+              <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
+              <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
+            </Routes>
+          </div>
+
+          {/* CỘT PHẢI */}
+          <div className="right-panel">
+            <div className="widget">
+              <h3>Based on your communities</h3>
+              <div className="widget-placeholder">List communities...</div>
+            </div>
+            <div className="widget">
+              <h3>People you may know</h3>
+              <div className="widget-placeholder">List people...</div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default App;

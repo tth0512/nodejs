@@ -30,6 +30,12 @@ export const createPost = async (req, res) => {
 
     const populatedPost = await Post.findById(newPost._id).populate('author', 'username email');
 
+    // Emit Socket.IO event to broadcast new post to all connected users
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('newPost', { post: populatedPost });
+    }
+
     res.status(201).json({ success: true, data: populatedPost });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -60,7 +66,17 @@ export const updatePost = async (req, res) => {
     }
 
     const updatedPost = await post.save();
-    res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: updatedPost });
+    
+    // Populate author before emitting
+    const populatedPost = await Post.findById(updatedPost._id).populate('author', 'username email');
+    
+    // Emit Socket.IO event to broadcast updated post to all connected users
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('postUpdated', { post: populatedPost });
+    }
+    
+    res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: populatedPost });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -86,7 +102,15 @@ export const deletePost = async (req, res) => {
       });
     }
 
+    const postId = post._id.toString();
     await post.deleteOne();
+    
+    // Emit Socket.IO event to broadcast post deletion to all connected users
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('postDeleted', { postId });
+    }
+    
     res.status(200).json({ success: true, message: 'Đã xóa bài viết thành công!' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

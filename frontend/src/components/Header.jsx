@@ -1,10 +1,12 @@
 // src/components/Header.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMessageSquare, FiBell, FiUser, FiSettings, FiLogOut } from 'react-icons/fi'; // Thêm dòng import icon này
-import './Header.css'; // Đảm bảo bạn đã tạo file CSS cho Header
+import { FiMessageSquare, FiBell, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { useAuth } from '../context/utils/useAuth.js';
+import './Header.css';
 
-function Header({ currentUser, onLogout }) {
+function Header({ onLogout }) {
+  const { currentUser } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (

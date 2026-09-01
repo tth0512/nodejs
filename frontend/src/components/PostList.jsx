@@ -1,13 +1,17 @@
 // src/components/PostList.jsx
 import { useEffect, useState } from 'react';
-import { FiTrash2, FiClock, FiHeart, FiMessageSquare, FiImage } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiTrash2, FiClock, FiHeart, FiMessageSquare, FiImage, FiMoreVertical, FiEdit2 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/utils/useAuth.js';
 import axiosClient from '../api/axiosClient.js';
-import './PostList.css'; // Đảm bảo bạn đã đưa CSS vào file này hoặc App.css
+import socket from '../api/socketClient.js';
+import './PostList.css';
 
-function CreatePostBox({ currentUser, onPostCreated }) {
+function CreatePostBox({ onPostCreated }) {
+  const { currentUser } = useAuth();
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -119,11 +123,14 @@ function CreatePostBox({ currentUser, onPostCreated }) {
   );
 }
 
-function PostList({ currentUser, refreshTrigger }) {
+function PostList({ refreshTrigger }) {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [postState, setPostState] = useState({
     data: [],
     loading: true,
   });
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const handlePostCreated = (newPost) => {
     const normalizedPost = {
@@ -147,6 +154,7 @@ function PostList({ currentUser, refreshTrigger }) {
   useEffect(() => {
     let ignore = false;
 
+    // Initial fetch
     axiosClient.get('/posts')
       .then((res) => {
         if (!ignore) {
@@ -160,7 +168,52 @@ function PostList({ currentUser, refreshTrigger }) {
         }
       });
 
-    return () => { ignore = true; };
+    // Socket.IO listeners for real-time updates
+    const handleNewPost = (data) => {
+      if (!ignore) {
+        const newPost = data.post;
+        setPostState((prev) => ({
+          ...prev,
+          data: [newPost, ...prev.data]
+        }));
+        console.log('✅ New post received via Socket.IO:', newPost._id);
+      }
+    };
+
+    const handlePostUpdated = (data) => {
+      if (!ignore) {
+        const updatedPost = data.post;
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.map((p) => p._id === updatedPost._id ? updatedPost : p)
+        }));
+        console.log('✅ Post updated via Socket.IO:', updatedPost._id);
+      }
+    };
+
+    const handlePostDeleted = (data) => {
+      if (!ignore) {
+        const postId = data.postId;
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.filter((p) => p._id !== postId)
+        }));
+        console.log('✅ Post deleted via Socket.IO:', postId);
+      }
+    };
+
+    // Attach listeners
+    socket.on('newPost', handleNewPost);
+    socket.on('postUpdated', handlePostUpdated);
+    socket.on('postDeleted', handlePostDeleted);
+
+    return () => {
+      ignore = true;
+      // Clean up socket listeners
+      socket.off('newPost', handleNewPost);
+      socket.off('postUpdated', handlePostUpdated);
+      socket.off('postDeleted', handlePostDeleted);
+    };
   }, [refreshTrigger]);
 
   const handleDelete = async (postId) => {
@@ -172,9 +225,15 @@ function PostList({ currentUser, refreshTrigger }) {
         data: prev.data.filter((p) => p._id !== postId),
       }));
       toast.success('Đã xóa bài viết!');
+      setOpenMenuId(null);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Không thể xóa bài viết');
     }
+  };
+
+  const handleEdit = (postId) => {
+    navigate(`/edit-post/${postId}`);
+    setOpenMenuId(null);
   };
 
   const formatTime = (dateString) => {
@@ -194,10 +253,7 @@ function PostList({ currentUser, refreshTrigger }) {
 
   return (
     <div className="post-list">
-      <CreatePostBox
-        currentUser={currentUser}
-        onPostCreated={handlePostCreated}
-      />
+      <CreatePostBox onPostCreated={handlePostCreated} />
 
       {postState.data.map((post) => {
         const canDelete = currentUser && (
@@ -208,7 +264,7 @@ function PostList({ currentUser, refreshTrigger }) {
         return (
           <div key={post._id} className="post-card">
 
-            {/* 1. HEADER: Thông tin tác giả và nút Xóa */}
+            {/* 1. HEADER: Thông tin tác giả và nút Dropdown Menu */}
             <div className="post-header">
               <div className="post-author-info">
                 <div className="author-avatar">
@@ -230,10 +286,36 @@ function PostList({ currentUser, refreshTrigger }) {
                 </div>
               </div>
 
+              {/* Dropdown Menu Button */}
               {canDelete && (
-                <button onClick={() => handleDelete(post._id)} className="delete-btn" title="Xóa bài viết">
-                  <FiTrash2 />
-                </button>
+                <div className="post-menu-container">
+                  <button 
+                    className="post-menu-btn" 
+                    onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
+                    title="Tùy chọn"
+                  >
+                    <FiMoreVertical />
+                  </button>
+                  
+                  {openMenuId === post._id && (
+                    <div className="post-dropdown-menu">
+                      <button 
+                        className="menu-item edit"
+                        onClick={() => handleEdit(post._id)}
+                      >
+                        <FiEdit2 className="menu-icon" />
+                        Chỉnh sửa
+                      </button>
+                      <button 
+                        className="menu-item delete"
+                        onClick={() => handleDelete(post._id)}
+                      >
+                        <FiTrash2 className="menu-icon" />
+                        Xóa
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 

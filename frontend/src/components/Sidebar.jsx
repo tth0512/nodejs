@@ -1,7 +1,10 @@
 // src/components/Sidebar.jsx
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../context/utils/useAuth.js';
 
-function Sidebar({ currentUser }) {
+function Sidebar() {
+  const { currentUser } = useAuth();
+
   return (
     <aside className="sidebar">
       <div className="logo-container">
@@ -11,7 +14,6 @@ function Sidebar({ currentUser }) {
       </div>
 
       <nav className="nav-menu">
-        {/* Dùng NavLink thay cho Link để tự động bắt class 'active' */}
         <NavLink to="/posts" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
           <span className="icon">🏠</span> Home
         </NavLink>
