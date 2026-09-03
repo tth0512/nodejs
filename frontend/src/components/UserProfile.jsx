@@ -1,10 +1,13 @@
 // src/components/UserProfile.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiUsers, FiClock, FiHeart, FiMessageSquare } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiClock, FiHeart, FiMessageSquare, FiLock } from 'react-icons/fi';
 import { format, formatDistanceToNow } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import axiosClient from '../api/axiosClient.js';
+import { useAuth } from '../context/utils/useAuth.js';
+import FollowButton from './FollowButton.jsx';
+import FollowList from './FollowList.jsx';
 import './Profile.css';
 import './PostList.css';
 
@@ -16,11 +19,13 @@ const MAJOR_LABELS = {
 function UserProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [followListMode, setFollowListMode] = useState(null); // 'followers' | 'following' | null
 
   useEffect(() => {
     if (!userId) return;
@@ -95,24 +100,48 @@ function UserProfile() {
         {/* Cover gradient */}
         <div className="profile-cover" />
 
-        {/* Top: avatar + name, NO Edit button */}
+        {/* Top: avatar + name + Follow button */}
         <div className="profile-top-section">
           <div className="avatar-wrapper">
-            <div className="profile-avatar">
-              {(user.username || 'U').charAt(0).toUpperCase()}
-            </div>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt="avatar" className="profile-avatar profile-avatar-img" />
+            ) : (
+              <div className="profile-avatar">
+                {(user.username || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="profile-titles">
-            <h3>{user.fullName || user.username}</h3>
+            <h3>
+              {user.fullName || user.username}
+              {user.isPrivate && <FiLock title="Tài khoản riêng tư" style={{ marginLeft: '6px', color: '#94a3b8', fontSize: '14px' }} />}
+            </h3>
             <p>@{user.username}</p>
+            {currentUser && currentUser._id !== userId && (
+              <div style={{ marginTop: '10px' }}>
+                <FollowButton targetUserId={userId} targetUsername={user.username} />
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats — clickable */}
         <section className="profile-stats" aria-label="Thống kê">
           <div><strong>{posts.length}</strong><span>Bài viết</span></div>
-          <div><strong>{user.followers?.length || 0}</strong><span>Followers</span></div>
-          <div><strong>{user.following?.length || 0}</strong><span>Following</span></div>
+          <div
+            style={{ cursor: 'pointer' }}
+            onClick={() => setFollowListMode('followers')}
+            title="Xem followers"
+          >
+            <strong>{user.followers?.length || 0}</strong><span>Followers</span>
+          </div>
+          <div
+            style={{ cursor: 'pointer' }}
+            onClick={() => setFollowListMode('following')}
+            title="Xem following"
+          >
+            <strong>{user.following?.length || 0}</strong><span>Following</span>
+          </div>
         </section>
 
         {/* Info fields — read-only, shown only if filled */}
@@ -167,8 +196,14 @@ function UserProfile() {
                   {/* Header */}
                   <div className="post-header">
                     <div className="post-author-info">
-                      <div className="author-avatar">
-                        {user.username.charAt(0).toUpperCase()}
+                      <div
+                        className="author-avatar"
+                        style={{ overflow: 'hidden', padding: 0 }}
+                      >
+                        {user.avatarUrl
+                          ? <img src={user.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                          : user.username.charAt(0).toUpperCase()
+                        }
                       </div>
                       <div className="author-meta">
                         <div>
@@ -218,6 +253,15 @@ function UserProfile() {
           )}
         </section>
       </div>
+
+      {/* FollowList Modal */}
+      {followListMode && (
+        <FollowList
+          userId={userId}
+          mode={followListMode}
+          onClose={() => setFollowListMode(null)}
+        />
+      )}
     </div>
   );
 }

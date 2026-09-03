@@ -1,8 +1,9 @@
 // src/components/Header.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMessageSquare, FiBell, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiMessageSquare, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../context/utils/useAuth.js';
+import NotificationBell from './NotificationBell.jsx';
 import './Header.css';
 
 function Header({ onLogout }) {
@@ -16,9 +17,7 @@ function Header({ onLogout }) {
           <button className="icon-btn" title="Tin nhắn">
             <FiMessageSquare />
           </button>
-          <button className="icon-btn" title="Thông báo">
-            <FiBell />
-          </button>
+          <NotificationBell />
           
           <div className="user-profile-container">
             <div className="user-profile-trigger" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>

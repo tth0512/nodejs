@@ -19,7 +19,6 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    // enum: ['user', 'admin'], // Chỉ cho phép 2 giá trị: user hoặc admin
     enum: [
       'member',
       'group_admin',
@@ -29,6 +28,8 @@ const userSchema = new mongoose.Schema({
     default: 'member' // Mặc định là member
   },
   // Thêm các trường này vào dưới trường role trong file User.js
+  avatarUrl: { type: String, default: '' },
+  coverUrl: { type: String, default: '' },
   fullName: { type: String, default: '' },
   studentId: { type: String, default: '' },
   major: { type: String, default: '' },
@@ -39,6 +40,9 @@ const userSchema = new mongoose.Schema({
   privacyContact: { type: String, enum: ['public', 'members', 'private'], default: 'members' },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  followRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // pending requests (private accounts)
+  isPrivate: { type: Boolean, default: false }, // private account toggle
 }, { timestamps: true }); // Tự động tạo createdAt, updatedAt
 
 const User = mongoose.model('User', userSchema);

@@ -336,7 +336,7 @@ function PostList({ refreshTrigger }) {
               <div className="post-author-info">
                 <div
                   className="author-avatar"
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
                   title={`Xem hồ sơ của ${post.author?.username || 'người dùng'}`}
                   onClick={() => {
                     const authorId = post.author?._id || post.author?.id;
@@ -345,7 +345,16 @@ function PostList({ refreshTrigger }) {
                     else if (authorId) navigate(`/users/${authorId}`);
                   }}
                 >
-                  {post.author?.username ? post.author.username.charAt(0).toUpperCase() : 'U'}
+                  {(() => {
+                    const isOwnPost = currentUser &&
+                      (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id);
+                    const avatarUrl = isOwnPost
+                      ? (currentUser?.avatarUrl || post.author?.avatarUrl)
+                      : post.author?.avatarUrl;
+                    return avatarUrl
+                      ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      : (post.author?.username ? post.author.username.charAt(0).toUpperCase() : 'U');
+                  })()}
                 </div>
                 <div className="author-meta">
                   <div>

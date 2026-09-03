@@ -1,18 +1,25 @@
 // src/components/Profile.jsx
-import { useEffect, useState } from 'react';
-import { FiEdit, FiMail, FiPlus, FiX, FiSave, FiLock, FiUsers, FiClock, FiHeart, FiMessageSquare } from 'react-icons/fi';
+import { useEffect, useRef, useState } from 'react';
+import { FiEdit, FiMail, FiPlus, FiX, FiSave, FiLock, FiUsers, FiClock, FiHeart, FiMessageSquare, FiCamera } from 'react-icons/fi';
 import { format, formatDistanceToNow } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
+import { toast } from 'react-toastify';
 import { useAuth } from '../context/utils/useAuth.js';
 import axiosClient from '../api/axiosClient.js';
 import './Profile.css';
 import './PostList.css';
 
 function Profile() {
-  const { currentUser } = useAuth();
+  const { currentUser, setCurrentUser } = useAuth();
   const currentDate = format(new Date(), 'EEE, dd MMMM yyyy', { locale: enUS });
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(currentUser || {});
+  const [avatarPreview, setAvatarPreview] = useState(currentUser?.avatarUrl || '');
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef(null);
+  const [coverPreview, setCoverPreview] = useState(currentUser?.coverUrl || '');
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef(null);
   const [formData, setFormData] = useState({
     fullName: currentUser?.fullName || currentUser?.username || '',
     studentId: currentUser?.studentId || '',
@@ -76,11 +83,82 @@ function Profile() {
 
     try {
       const response = await axiosClient.put('/auth/profile', formData);
-      setProfile((previous) => ({ ...previous, ...response.data.user }));
+      const updatedUser = { ...response.data.user };
+      setProfile((previous) => ({ ...previous, ...updatedUser }));
+      // Sync currentUser globally so avatars update everywhere
+      setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
       setSuccess(response.data.message || 'Profile updated successfully.');
       setIsEditing(false);
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Unable to update profile.');
+    }
+  };
+
+  // Upload avatar immediately on file select
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.warning('Ảnh đại diện tối đa 2MB.');
+      e.target.value = '';
+      return;
+    }
+
+    // Show local preview immediately
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarUploading(true);
+
+    try {
+      const fd = new FormData();
+      fd.append('avatar', file);
+      const res = await axiosClient.post('/auth/avatar', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const newUrl = res.data.avatarUrl;
+      setAvatarPreview(newUrl);
+      setProfile((prev) => ({ ...prev, avatarUrl: newUrl }));
+      // Sync to global context immediately
+      setCurrentUser((prev) => ({ ...prev, avatarUrl: newUrl }));
+      toast.success('Ảnh đại diện đã được cập nhật!');
+    } catch {
+      toast.error('Không thể tải ảnh đại diện lên. Vui lòng thử lại.');
+      setAvatarPreview(profile.avatarUrl || '');
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload cover immediately on file select
+  const handleCoverChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning('Ảnh bìa tối đa 5MB.');
+      e.target.value = '';
+      return;
+    }
+
+    setCoverPreview(URL.createObjectURL(file));
+    setCoverUploading(true);
+
+    try {
+      const fd = new FormData();
+      fd.append('cover', file);
+      const res = await axiosClient.post('/auth/cover', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const newUrl = res.data.coverUrl;
+      setCoverPreview(newUrl);
+      setProfile((prev) => ({ ...prev, coverUrl: newUrl }));
+      setCurrentUser((prev) => ({ ...prev, coverUrl: newUrl }));
+      toast.success('Ảnh bìa đã được cập nhật!');
+    } catch {
+      toast.error('Không thể tải ảnh bìa. Vui lòng thử lại.');
+      setCoverPreview(profile.coverUrl || '');
+    } finally {
+      setCoverUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -92,15 +170,62 @@ function Profile() {
       </div>
 
       <div className="profile-card">
-        <div className="profile-cover"></div>
+        {/* Cover photo with edit overlay */}
+        <div
+          className="profile-cover"
+          style={coverPreview ? { backgroundImage: `url(${coverPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+        >
+          <button
+            type="button"
+            className="cover-upload-btn"
+            title="Đổi ảnh bìa"
+            onClick={() => coverInputRef.current?.click()}
+            disabled={coverUploading}
+          >
+            <FiCamera /> {coverUploading ? 'Đang tải...' : 'Đổi ảnh bìa'}
+          </button>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleCoverChange}
+          />
+        </div>
 
         <div className="profile-top-section">
-          <div className="avatar-wrapper">
-            <div className="profile-avatar">
-              {(profile.username || 'U').charAt(0).toUpperCase()}
-            </div>
+          {/* Avatar with camera upload overlay */}
+          <div className="avatar-wrapper" style={{ position: 'relative' }}>
+            {avatarPreview ? (
+              <img
+                src={avatarPreview}
+                alt="Avatar"
+                className="profile-avatar profile-avatar-img"
+              />
+            ) : (
+              <div className="profile-avatar">
+                {(profile.username || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
+            {/* Camera overlay button */}
+            <button
+              type="button"
+              className="avatar-upload-btn"
+              title="Đổi ảnh đại diện"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+            >
+              {avatarUploading ? '...' : <FiCamera />}
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleAvatarChange}
+            />
           </div>
-          
+
           <div className="profile-titles">
             <h3>{profile.fullName || profile.username || 'User'}</h3>
             <p>{profile.email || 'email@example.com'}</p>
@@ -130,7 +255,7 @@ function Profile() {
             <label>Họ và tên</label>
             <input name="fullName" type="text" placeholder="Nhập họ và tên..." value={formData.fullName} onChange={handleChange} disabled={!isEditing} />
           </div>
-          
+
           <div className="form-group">
             <label>Mã sinh viên / Cán bộ</label>
             <input name="studentId" type="text" placeholder="Nhập MSV..." value={formData.studentId} onChange={handleChange} disabled={!isEditing} />
@@ -212,8 +337,11 @@ function Profile() {
                     {/* Header */}
                     <div className="post-header">
                       <div className="post-author-info">
-                        <div className="author-avatar">
-                          {(profile.username || 'U').charAt(0).toUpperCase()}
+                        <div className="author-avatar" style={{ overflow: 'hidden', padding: 0 }}>
+                          {avatarPreview
+                            ? <img src={avatarPreview} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                            : (profile.username || 'U').charAt(0).toUpperCase()
+                          }
                         </div>
                         <div className="author-meta">
                           <div>
@@ -266,7 +394,7 @@ function Profile() {
 
         <div className="profile-email-section">
           <h4 className="section-title">My email Address</h4>
-          
+
           <div className="email-item">
             <div className="email-icon">
               <FiMail />

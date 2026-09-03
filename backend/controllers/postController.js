@@ -5,7 +5,7 @@ import Post from '../models/Post.js';
 export const getPosts = async (req, res) => {
   try {
     const query = req.query.author ? { author: req.query.author } : {};
-    const posts = await Post.find(query).populate('author', 'username email').sort({ createdAt: -1 });
+    const posts = await Post.find(query).populate('author', 'username email avatarUrl').sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -28,7 +28,7 @@ export const createPost = async (req, res) => {
       author: req.user.userId
     });
 
-    const populatedPost = await Post.findById(newPost._id).populate('author', 'username email');
+    const populatedPost = await Post.findById(newPost._id).populate('author', 'username email avatarUrl');
 
     // Emit Socket.IO event to broadcast new post to all connected users
     const io = req.app.get('io');
@@ -68,7 +68,7 @@ export const updatePost = async (req, res) => {
     const updatedPost = await post.save();
     
     // Populate author before emitting
-    const populatedPost = await Post.findById(updatedPost._id).populate('author', 'username email');
+    const populatedPost = await Post.findById(updatedPost._id).populate('author', 'username email avatarUrl');
     
     // Emit Socket.IO event to broadcast updated post to all connected users
     const io = req.app.get('io');

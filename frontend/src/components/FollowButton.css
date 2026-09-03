@@ -1,0 +1,133 @@
+/* FollowButton.css */
+
+.follow-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.follow-btn__icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* --- States --- */
+
+.follow-btn--none {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+.follow-btn--none:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.follow-btn--following {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  border: 1.5px solid #6366f1;
+}
+.follow-btn--following:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.follow-btn--unfollow-hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.follow-btn--requested {
+  background: rgba(234, 179, 8, 0.12);
+  color: #ca8a04;
+  border: 1.5px solid #ca8a04;
+}
+.follow-btn--requested:hover:not(:disabled) {
+  background: rgba(234, 179, 8, 0.22);
+}
+
+.follow-btn--blocked {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1.5px solid #dc2626;
+}
+.follow-btn--blocked:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.follow-btn--loading {
+  background: #e2e8f0;
+  color: #94a3b8;
+  padding: 8px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Dropdown */
+.follow-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  min-width: 160px;
+  z-index: 200;
+  overflow: hidden;
+  animation: fadeInDown 0.15s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.follow-dropdown__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.follow-dropdown__item:hover {
+  background: #f8fafc;
+}
+.follow-dropdown__item--danger {
+  color: #dc2626;
+}
+.follow-dropdown__item--danger:hover {
+  background: #fef2f2;
+}

@@ -1,0 +1,223 @@
+/* NotificationBell.css */
+
+.notif-bell-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.notif-bell-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  color: #64748b;
+}
+.notif-bell-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.notif-bell-icon {
+  font-size: 22px;
+}
+
+.notif-bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+/* Panel */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 360px;
+  max-width: 95vw;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  border: 1px solid #f1f5f9;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notif-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.notif-panel__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.notif-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-mark-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.notif-mark-all-btn:hover {
+  background: #f0f0ff;
+}
+
+.notif-close-btn {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.notif-close-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Body */
+.notif-panel__body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.notif-panel__body::-webkit-scrollbar { width: 4px; }
+.notif-panel__body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+.notif-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Item */
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.notif-item:hover {
+  background: #f8fafc;
+}
+.notif-item--unread {
+  background: #fafaff;
+}
+
+.notif-item__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notif-item__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notif-item__avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.notif-item__type-icon {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  border: 2px solid #fff;
+}
+
+.notif-item__content {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item__text {
+  font-size: 13px;
+  color: #334155;
+  margin: 0 0 3px;
+  line-height: 1.4;
+}
+.notif-item__time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notif-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6366f1;
+  flex-shrink: 0;
+}

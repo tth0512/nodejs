@@ -1,0 +1,154 @@
+/* FollowRequests.css */
+
+.freq-section {
+  margin-top: 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.freq-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  border-bottom: 1px solid #ede9fe;
+}
+
+.freq-header__icon {
+  color: #7c3aed;
+  font-size: 18px;
+}
+
+.freq-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.freq-badge {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.freq-empty {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+.freq-list {
+  padding: 4px 0;
+}
+
+.freq-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  transition: background 0.15s;
+  gap: 10px;
+}
+.freq-item:hover {
+  background: #fafafa;
+}
+
+.freq-item__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.freq-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.freq-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.freq-item__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.freq-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.freq-item__username {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.freq-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.freq-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.freq-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.freq-btn--accept {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+}
+.freq-btn--accept:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+  transform: translateY(-1px);
+}
+
+.freq-btn--reject {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 6px 10px;
+}
+.freq-btn--reject:hover:not(:disabled) {
+  background: #fecaca;
+}

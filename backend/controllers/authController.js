@@ -106,7 +106,7 @@ export const updateProfile = async (req, res) => {
   try {
     const {
       fullName, studentId, major, cohort, skills, interests,
-      privacyProfile, privacyContact
+      privacyProfile, privacyContact, avatarUrl, isPrivate
     } = req.body;
     
     // Tìm và update User dựa trên ID lấy từ Token (ngăn không cho sửa tài khoản người khác)
@@ -114,7 +114,9 @@ export const updateProfile = async (req, res) => {
       req.user.userId, 
       {
         fullName, studentId, major, cohort, skills, interests,
-        privacyProfile, privacyContact
+        privacyProfile, privacyContact,
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(isPrivate !== undefined && { isPrivate })
       },
       { new: true, runValidators: true } // Trả về data mới sau khi update
     ).select('-password');
@@ -140,3 +142,55 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// 7. UPLOAD AVATAR - Tải ảnh đại diện lên Cloudinary
+export const uploadAvatarController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Vui lòng chọn ảnh đại diện!' });
+    }
+
+    const avatarUrl = req.file.path; // Cloudinary URL
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId,
+      { avatarUrl },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({
+      success: true,
+      message: 'Cập nhật ảnh đại diện thành công!',
+      avatarUrl,
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 8. UPLOAD COVER - Tải ảnh bìa lên Cloudinary
+export const uploadCoverController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Vui lòng chọn ảnh bìa!' });
+    }
+
+    const coverUrl = req.file.path;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId,
+      { coverUrl },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({
+      success: true,
+      message: 'Cập nhật ảnh bìa thành công!',
+      coverUrl,
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

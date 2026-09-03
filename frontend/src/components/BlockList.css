@@ -1,0 +1,137 @@
+/* BlockList.css */
+
+.blocklist-section {
+  margin-top: 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #fee2e2;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.blocklist-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #fff5f5, #fff1f2);
+  border-bottom: 1px solid #fee2e2;
+}
+
+.blocklist-header__icon {
+  color: #dc2626;
+  font-size: 18px;
+}
+
+.blocklist-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blocklist-count {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.blocklist-empty {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+.blocklist-list {
+  padding: 4px 0;
+}
+
+.blocklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  transition: background 0.15s;
+  gap: 10px;
+}
+.blocklist-item:hover {
+  background: #fff5f5;
+}
+
+.blocklist-item__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.blocklist-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.blocklist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.4);
+}
+
+.blocklist-item__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.blocklist-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.blocklist-item__username {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.blocklist-unblock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid #dc2626;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.blocklist-unblock-btn:hover:not(:disabled) {
+  background: #fee2e2;
+}
+.blocklist-unblock-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
