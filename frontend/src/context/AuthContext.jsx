@@ -90,7 +90,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       currentUser, setCurrentUser, login, logout, refreshUser, isAuthLoading,
-      socket: socketRef.current
+      socketRef,
     }}>
       {children}
     </AuthContext.Provider>

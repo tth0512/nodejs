@@ -106,7 +106,7 @@ export const updateProfile = async (req, res) => {
   try {
     const {
       fullName, studentId, major, cohort, skills, interests,
-      privacyProfile, privacyContact, avatarUrl, isPrivate
+      privacyProfile, privacyContact, avatarUrl, coverUrl, bio, isPrivate
     } = req.body;
     
     // Tìm và update User dựa trên ID lấy từ Token (ngăn không cho sửa tài khoản người khác)
@@ -116,6 +116,8 @@ export const updateProfile = async (req, res) => {
         fullName, studentId, major, cohort, skills, interests,
         privacyProfile, privacyContact,
         ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(coverUrl !== undefined && { coverUrl }),
+        ...(bio !== undefined && { bio }),
         ...(isPrivate !== undefined && { isPrivate })
       },
       { new: true, runValidators: true } // Trả về data mới sau khi update

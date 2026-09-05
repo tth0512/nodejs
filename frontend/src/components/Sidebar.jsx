@@ -1,9 +1,15 @@
-// src/components/Sidebar.jsx
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/utils/useAuth.js';
 
 function Sidebar() {
   const { currentUser } = useAuth();
+  const location = useLocation();
+
+  const isProfileActive =
+    location.pathname === '/profile' ||
+    (currentUser &&
+      (location.pathname === `/users/${currentUser._id}` ||
+        location.pathname === '/profile/edit'));
 
   return (
     <aside className="sidebar">
@@ -18,7 +24,10 @@ function Sidebar() {
         <NavLink to="/posts" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
           <span className="icon">🏠</span> Home
         </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <NavLink
+          to={currentUser ? `/users/${currentUser._id}` : '/profile'}
+          className={() => (isProfileActive ? 'nav-link active' : 'nav-link')}
+        >
           <span className="icon">👤</span> Profile
         </NavLink>
         <NavLink to="/communities" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>

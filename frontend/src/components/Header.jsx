@@ -21,13 +21,26 @@ function Header({ onLogout }) {
           
           <div className="user-profile-container">
             <div className="user-profile-trigger" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-              <div className="user-avatar">{currentUser.username.charAt(0).toUpperCase()}</div>
+              {currentUser.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt="avatar"
+                  className="user-avatar"
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                <div className="user-avatar">{currentUser.username.charAt(0).toUpperCase()}</div>
+              )}
               <span className="user-name">{currentUser.username} <span>▼</span></span>
             </div>
 
             {isDropdownOpen && (
               <div className="dropdown-menu">
-                <Link to="/profile" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                <Link
+                  to={`/users/${currentUser._id || currentUser.id}`}
+                  className="dropdown-item"
+                  onClick={() => setIsDropdownOpen(false)}
+                >
                   <FiUser className="item-icon" /> Hồ sơ cá nhân
                 </Link>
                 <Link to="/settings" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>

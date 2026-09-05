@@ -214,6 +214,17 @@ body {
   max-width: 650px; /* Độ rộng tối đa của bài viết */
 }
 
+/* Trang Profile: mở rộng toàn bộ không gian sang bên phải */
+.content-area.content-area--full {
+  padding: 24px 36px;
+  gap: 0;
+}
+
+.feed-container.feed-container--full {
+  max-width: 1060px;
+  width: 100%;
+}
+
 /* 4. RIGHT PANEL (Cột phải) */
 .right-panel {
   width: 300px;

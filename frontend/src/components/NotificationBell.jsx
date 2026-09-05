@@ -2,14 +2,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FiBell, FiX, FiCheck, FiUserPlus, FiUserCheck, FiClock } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
 import { useAuth } from '../context/utils/useAuth.js';
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../api/followApi.js';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import './NotificationBell.css';
-
-const SOCKET_URL = 'http://localhost:5000';
 
 const TYPE_CONFIG = {
   follow: { icon: FiUserPlus, label: 'đã follow bạn.', color: '#6366f1' },
@@ -18,14 +15,13 @@ const TYPE_CONFIG = {
 };
 
 function NotificationBell() {
-  const { currentUser } = useAuth();
+  const { currentUser, socketRef } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const panelRef = useRef(null);
-  const socketRef = useRef(null);
 
   const fetchNotifications = useCallback(async () => {
     if (!currentUser) return;
@@ -46,27 +42,25 @@ function NotificationBell() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Socket.IO — real-time new notifications
+  // Attach a listener to the shared socket from AuthContext — no new connection created
   useEffect(() => {
     if (!currentUser?._id) return;
 
-    const socket = io(SOCKET_URL, { withCredentials: true });
-    socketRef.current = socket;
+    const socket = socketRef?.current;
+    if (!socket) return;
 
-    socket.on('connect', () => {
-      socket.emit('join', currentUser._id);
-    });
-
-    socket.on('new_notification', (notification) => {
+    const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((c) => c + 1);
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
     };
-  }, [currentUser?._id]);
+
+    socket.on('new_notification', handleNewNotification);
+
+    // Remove only this listener on cleanup — do NOT disconnect the shared socket
+    return () => {
+      socket.off('new_notification', handleNewNotification);
+    };
+  }, [currentUser?._id, socketRef]);
 
   // Close panel on outside click
   useEffect(() => {

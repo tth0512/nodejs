@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
   avatarUrl: { type: String, default: '' },
   coverUrl: { type: String, default: '' },
   fullName: { type: String, default: '' },
+  bio: { type: String, default: '' },
   studentId: { type: String, default: '' },
   major: { type: String, default: '' },
   cohort: { type: String, default: '' },
