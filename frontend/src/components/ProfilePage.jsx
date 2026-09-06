@@ -215,11 +215,29 @@ function ProfilePage() {
                 </Link>
               ) : (
                 currentUser && (
-                  <FollowButton
-                    targetUserId={userId}
-                    targetUsername={user.username}
-                    onStatusChange={fetchUserData}
-                  />
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <FollowButton
+                      targetUserId={userId}
+                      targetUsername={user.username}
+                      onStatusChange={fetchUserData}
+                    />
+                    <Link 
+                      to={`/messages/new/${userId}`} 
+                      className="profile-btn" 
+                      style={{ 
+                        background: '#0084ff', 
+                        color: '#ffffff', 
+                        border: 'none',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 8px rgba(0, 132, 255, 0.25)'
+                      }}
+                    >
+                      <FiMessageSquare /> Nhắn tin
+                    </Link>
+                  </div>
                 )
               )}
             </div>

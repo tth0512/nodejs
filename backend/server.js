@@ -9,6 +9,8 @@ import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import followRoutes from './routes/followRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import { setupSocket } from './socket/socketHandler.js';
 
 dotenv.config();
 
@@ -44,23 +46,10 @@ app.use('/api/posts', postRoutes);
 app.use('/api/follow', followRoutes);
 app.use('/api/block', followRoutes); // block endpoints are in followRoutes
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
 
-// Socket.IO Connection Handler
-io.on('connection', (socket) => {
-  console.log(`✅ User connected: ${socket.id}`);
-
-  // Join personal room so we can send targeted notifications
-  socket.on('join', (userId) => {
-    if (userId) {
-      socket.join(userId);
-      console.log(`🔔 User ${userId} joined their room`);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`❌ User disconnected: ${socket.id}`);
-  });
-});
+// Setup Socket.IO Gateway
+setupSocket(io);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

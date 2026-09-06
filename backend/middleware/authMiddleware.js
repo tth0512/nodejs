@@ -15,8 +15,8 @@ export const protect = (req, res, next) => {
     // Giải mã token bằng mã khóa bí mật
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Gán payload { userId, role } vào req.user để các controller phía sau dùng
-    req.user = decoded;
+    // Gán payload { userId, role, id } vào req.user để các controller phía sau dùng thống nhất
+    req.user = { ...decoded, id: decoded.userId || decoded.id, userId: decoded.userId || decoded.id };
 
     // Cho phép đi tiếp vào route chính
     next();

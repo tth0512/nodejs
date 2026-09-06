@@ -1,22 +1,30 @@
-// src/components/Header.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMessageSquare, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../context/utils/useAuth.js';
 import NotificationBell from './NotificationBell.jsx';
+import MessengerDropdown from './MessengerDropdown.jsx';
 import './Header.css';
 
 function Header({ onLogout }) {
   const { currentUser } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMessengerOpen, setIsMessengerOpen] = useState(false);
 
   return (
     <header className="top-header">
       {currentUser ? (
         <div className="header-actions">
-          <button className="icon-btn" title="Tin nhắn">
-            <FiMessageSquare />
-          </button>
+          <div className="messenger-header-container" style={{ position: 'relative' }}>
+            <button 
+              className={`icon-btn ${isMessengerOpen ? 'active' : ''}`} 
+              title="Tin nhắn"
+              onClick={() => setIsMessengerOpen(!isMessengerOpen)}
+            >
+              <FiMessageSquare />
+            </button>
+            {isMessengerOpen && <MessengerDropdown onClose={() => setIsMessengerOpen(false)} />}
+          </div>
           <NotificationBell />
           
           <div className="user-profile-container">

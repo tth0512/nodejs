@@ -30,6 +30,9 @@ function Sidebar() {
         >
           <span className="icon">👤</span> Profile
         </NavLink>
+        <NavLink to="/messages" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+          <span className="icon">💬</span> Messages
+        </NavLink>
         <NavLink to="/communities" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
           <span className="icon">👥</span> Explore Communities
         </NavLink>
