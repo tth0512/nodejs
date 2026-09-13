@@ -6,8 +6,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/utils/useAuth.js';
+import { useSocket } from '../context/SocketContext.jsx';
 import axiosClient from '../api/axiosClient.js';
-import socket from '../api/socketClient.js';
 import './PostList.css';
 
 function CreatePostBox({ onPostCreated }) {
@@ -125,6 +125,7 @@ function CreatePostBox({ onPostCreated }) {
 
 function PostList({ refreshTrigger }) {
   const { currentUser } = useAuth();
+  const socket = useSocket();
   const navigate = useNavigate();
   const [postState, setPostState] = useState({
     data: [],
@@ -153,10 +154,15 @@ function PostList({ refreshTrigger }) {
       createdAt: newPost?.createdAt || new Date().toISOString()
     };
 
-    setPostState((prev) => ({
-      ...prev,
-      data: [normalizedPost, ...prev.data]
-    }));
+    setPostState((prev) => {
+      if (prev.data.some((p) => p._id === normalizedPost._id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        data: [normalizedPost, ...prev.data]
+      };
+    });
   };
 
   useEffect(() => {
@@ -176,22 +182,34 @@ function PostList({ refreshTrigger }) {
         }
       });
 
+    if (!socket) return () => { ignore = true; };
+
     // Socket.IO listeners for real-time updates
     const handleNewPost = (data) => {
-      if (!ignore) {
+      if (!ignore && data?.post) {
         const newPost = data.post;
-        setPostState((prev) => ({
-          ...prev,
-          data: [newPost, ...prev.data]
-        }));
+        setPostState((prev) => {
+          if (prev.data.some((p) => p._id === newPost._id)) return prev;
+          return {
+            ...prev,
+            data: [newPost, ...prev.data]
+          };
+        });
+
+        // Show toast notification when someone else creates a post
+        const myId = currentUser?._id || currentUser?.id;
+        const authorId = newPost.author?._id || newPost.author?.id;
+        if (authorId && myId && authorId.toString() !== myId.toString()) {
+          toast.info(`Bài viết mới từ ${newPost.author?.username || 'người dùng'}: "${(newPost.title || '').slice(0, 30)}..."`);
+        }
         console.log('✅ New post received via Socket.IO:', newPost._id);
       }
     };
 
     const handlePostUpdated = (data) => {
-      if (!ignore) {
+      if (!ignore && data?.post) {
         const updatedPost = data.post;
-        // Remove the old post and prepend updated post to the top of feed
+        // Remove old post and prepend updated post to top of feed
         setPostState((prev) => ({
           ...prev,
           data: [updatedPost, ...prev.data.filter((p) => p._id !== updatedPost._id)]
@@ -201,7 +219,7 @@ function PostList({ refreshTrigger }) {
     };
 
     const handlePostDeleted = (data) => {
-      if (!ignore) {
+      if (!ignore && data?.postId) {
         const postId = data.postId;
         setPostState((prev) => ({
           ...prev,
@@ -218,12 +236,11 @@ function PostList({ refreshTrigger }) {
 
     return () => {
       ignore = true;
-      // Clean up socket listeners
       socket.off('newPost', handleNewPost);
       socket.off('postUpdated', handlePostUpdated);
       socket.off('postDeleted', handlePostDeleted);
     };
-  }, [refreshTrigger]);
+  }, [refreshTrigger, socket, currentUser]);
 
   const handleDelete = async (postId) => {
     if (!window.confirm('Bạn có chắc muốn xóa bài viết này?')) return;

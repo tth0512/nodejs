@@ -5,7 +5,9 @@ import Post from '../models/Post.js';
 export const getPosts = async (req, res) => {
   try {
     const query = req.query.author ? { author: req.query.author } : {};
-    const posts = await Post.find(query).populate('author', 'username email avatarUrl').sort({ createdAt: -1 });
+    const posts = await Post.find(query)
+      .populate('author', 'username email avatarUrl')
+      .sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -16,19 +18,28 @@ export const getPosts = async (req, res) => {
 export const createPost = async (req, res) => {
   try {
     const { title, content, imageUrl } = req.body;
+    const authorId = req.user?.userId || req.user?.id;
+
+    if (!authorId) {
+      return res.status(401).json({ success: false, message: 'Chưa đăng nhập hoặc phiên hết hạn!' });
+    }
 
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Vui lòng điền đủ title và content!' });
     }
 
+    // Support both Cloudinary uploaded file and direct URL/base64
+    const finalImageUrl = (req.file && req.file.path) ? req.file.path : (imageUrl || '');
+
     const newPost = await Post.create({
       title,
       content,
-      imageUrl: imageUrl || '',
-      author: req.user.userId
+      imageUrl: finalImageUrl,
+      author: authorId
     });
 
-    const populatedPost = await Post.findById(newPost._id).populate('author', 'username email avatarUrl');
+    const populatedPost = await Post.findById(newPost._id)
+      .populate('author', 'username email avatarUrl');
 
     // Emit Socket.IO event to broadcast new post to all connected users
     const io = req.app.get('io');
@@ -38,6 +49,7 @@ export const createPost = async (req, res) => {
 
     res.status(201).json({ success: true, data: populatedPost });
   } catch (error) {
+    console.error('Error in createPost:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -45,13 +57,14 @@ export const createPost = async (req, res) => {
 // 3. Sửa bài viết (Chỉ tác giả)
 export const updatePost = async (req, res) => {
   try {
+    const authorId = (req.user?.userId || req.user?.id)?.toString();
     const post = await Post.findById(req.params.id);
 
     if (!post) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết!' });
     }
 
-    if (post.author.toString() !== req.user.userId) {
+    if (post.author.toString() !== authorId) {
       return res.status(403).json({ 
         success: false, 
         message: 'Bạn không có quyền sửa bài viết của người khác!' 
@@ -68,7 +81,8 @@ export const updatePost = async (req, res) => {
     const updatedPost = await post.save();
     
     // Populate author before emitting
-    const populatedPost = await Post.findById(updatedPost._id).populate('author', 'username email avatarUrl');
+    const populatedPost = await Post.findById(updatedPost._id)
+      .populate('author', 'username email avatarUrl');
     
     // Emit Socket.IO event to broadcast updated post to all connected users
     const io = req.app.get('io');
@@ -78,6 +92,7 @@ export const updatePost = async (req, res) => {
     
     res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: populatedPost });
   } catch (error) {
+    console.error('Error in updatePost:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -85,6 +100,7 @@ export const updatePost = async (req, res) => {
 // 4. Xóa bài viết (Tác giả hoặc Moderator / System Admin)
 export const deletePost = async (req, res) => {
   try {
+    const authorId = (req.user?.userId || req.user?.id)?.toString();
     const post = await Post.findById(req.params.id);
 
     if (!post) {
@@ -92,8 +108,8 @@ export const deletePost = async (req, res) => {
     }
 
     // Kiểm tra quyền: Phải là tác giả HOẶC có role quản trị hệ thống
-    const isAuthor = post.author.toString() === req.user.userId;
-    const hasAdminPrivilege = ['moderator', 'system_admin'].includes(req.user.role);
+    const isAuthor = post.author.toString() === authorId;
+    const hasAdminPrivilege = ['moderator', 'system_admin'].includes(req.user?.role);
 
     if (!isAuthor && !hasAdminPrivilege) {
       return res.status(403).json({ 
@@ -113,6 +129,7 @@ export const deletePost = async (req, res) => {
     
     res.status(200).json({ success: true, message: 'Đã xóa bài viết thành công!' });
   } catch (error) {
+    console.error('Error in deletePost:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
