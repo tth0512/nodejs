@@ -8,8 +8,8 @@ export const register = async (req, res) => {
   try {
     const { username, email, password, fullName } = req.body;
 
-    if (!username || !email || !password || !fullName) {
-      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ thông tin (username, email, password, fullName)!' });
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ thông tin (username, email, password)!' });
     }
 
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -24,7 +24,7 @@ export const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      fullName
+      fullName: fullName || username || ''
     });
 
     res.status(201).json({

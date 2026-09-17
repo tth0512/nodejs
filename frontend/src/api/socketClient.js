@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 
-// Initialize Socket.IO connection to backend
-const SOCKET_URL = 'http://localhost:5000';
+// Initialize Socket.IO connection via Vite proxy
+const SOCKET_URL = '/';
 
 export const socket = io(SOCKET_URL, {
   reconnection: true,

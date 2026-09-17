@@ -1,0 +1,62 @@
+services:
+  # 1. Database MongoDB
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: mini_social_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  # 2. Backend Node.js
+  backend:
+    build:
+      context: ./backend
+    container_name: backend_app
+    restart: always
+    command: node --watch server.js
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/mini_social_db?authSource=admin
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  # 3. Frontend Vite / React
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend_app
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge

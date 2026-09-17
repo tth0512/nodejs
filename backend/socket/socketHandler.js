@@ -1,33 +1,10 @@
 import { parseCookie } from 'cookie';
 import jwt from 'jsonwebtoken';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const setupSocket = async (io) => {
+export const setupSocket = (io) => {
   try {
-    // Setup Redis Adapter for horizontal scalability
-    // We try to connect. If Redis is not available, we can log and fallback to memory adapter if needed,
-    // Redis 5.x on Windows uses RESP2 protocol
-    const pubClient = createClient({ url: 'redis://localhost:6379', RESP: 2 });
-    const subClient = pubClient.duplicate();
-
-    pubClient.on('error', (err) => console.log('Redis PubClient Error', err));
-    subClient.on('error', (err) => console.log('Redis SubClient Error', err));
-
-    await Promise.all([
-      pubClient.connect().catch(e => console.log('Redis connect error (pub)', e.message)), 
-      subClient.connect().catch(e => console.log('Redis connect error (sub)', e.message))
-    ]);
-    
-    // Only use adapter if connected
-    if (pubClient.isOpen && subClient.isOpen) {
-      io.adapter(createAdapter(pubClient, subClient));
-      console.log('✅ Redis Adapter for Socket.IO configured');
-    } else {
-      console.log('⚠️ Running without Redis Adapter (Redis server might be down)');
-    }
 
     // Middleware for Auth via HttpOnly cookie
     io.use((socket, next) => {

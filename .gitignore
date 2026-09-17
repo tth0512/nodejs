@@ -1,0 +1,84 @@
+# ==========================================
+# Dependencies (cực kỳ nặng, luôn luôn bỏ qua)
+# ==========================================
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# ==========================================
+# Production build & Cache
+# ==========================================
+dist/
+**/dist/
+dist-ssr/
+build/
+**/build/
+out/
+.vite/
+**/.vite/
+.npm/
+.cache/
+
+# ==========================================
+# Environment variables (Bảo mật thông tin)
+# ==========================================
+.env
+.env.*
+*.env.local
+!.env.example
+!**/.env.example
+
+# ==========================================
+# Logs & Debugging
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# Archives & Temporary files
+# ==========================================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.bak
+*.tmp
+
+# ==========================================
+# Database / Persistent Local Storage
+# ==========================================
+mongodb_data/
+*.sqlite
+*.sqlite3
+uploads/
+**/uploads/
+
+# ==========================================
+# IDE & Editors
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==========================================
+# OS Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

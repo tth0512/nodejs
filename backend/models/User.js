@@ -24,22 +24,21 @@ const userSchema = new mongoose.Schema({
   },
   fullName: {
     type: String,
-    required: true,
     default: ''
   },
   // Profile fields
-  avatarUrl:  { type: String, default: '' },
-  coverUrl:   { type: String, default: '' },
-  bio:        { type: String, default: '' },
-  studentId:  { type: String, default: '' },
-  major:      { type: String, default: '' },
-  cohort:     { type: String, default: '' },
-  skills:     { type: String, default: '' },
-  interests:  { type: String, default: '' },
+  avatarUrl: { type: String, default: '' },
+  coverUrl: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  studentId: { type: String, default: '' },
+  major: { type: String, default: '' },
+  cohort: { type: String, default: '' },
+  skills: { type: String, default: '' },
+  interests: { type: String, default: '' },
   // Privacy settings
   privacyProfile: { type: String, enum: ['public', 'private'], default: 'public' },
   privacyContact: { type: String, enum: ['public', 'private'], default: 'public' },
-  isPrivate:      { type: Boolean, default: false },
+  isPrivate: { type: Boolean, default: false },
   // Account status
   status: {
     type: String,

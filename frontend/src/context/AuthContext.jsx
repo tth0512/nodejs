@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import axiosClient from '../api/axiosClient.js';
 import { AuthContext } from './utils/authContext.js';
 
-const SOCKET_URL = 'http://localhost:5000';
+const SOCKET_URL = '/';
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);

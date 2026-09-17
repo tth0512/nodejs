@@ -12,8 +12,8 @@ export const SocketProvider = ({ children, currentUser }) => {
 
   useEffect(() => {
     if (currentUser) {
-      // Connect to Socket.IO server
-      const newSocket = io('http://localhost:5000', {
+      // Connect to Socket.IO server via Vite proxy
+      const newSocket = io({
         withCredentials: true // Important for sending the HttpOnly cookie
       });
 
