@@ -142,15 +142,19 @@ function PostList({ refreshTrigger }) {
   const editFileInputRef = useRef(null);
 
   const handlePostCreated = (newPost) => {
+    const authorData = (newPost?.authorId && typeof newPost.authorId === 'object')
+      ? newPost.authorId
+      : (newPost?.author || {
+          _id: currentUser?._id || currentUser?.id,
+          username: currentUser?.username || 'You',
+          email: currentUser?.email || '',
+          avatarUrl: currentUser?.avatarUrl || ''
+        });
+
     const normalizedPost = {
       ...newPost,
-      author: newPost?.author?.username
-        ? newPost.author
-        : {
-            _id: currentUser?._id || currentUser?.id,
-            username: currentUser?.username || 'You',
-            email: currentUser?.email || ''
-          },
+      author: authorData,
+      authorId: authorData,
       createdAt: newPost?.createdAt || new Date().toISOString()
     };
 
@@ -187,7 +191,15 @@ function PostList({ refreshTrigger }) {
     // Socket.IO listeners for real-time updates
     const handleNewPost = (data) => {
       if (!ignore && data?.post) {
-        const newPost = data.post;
+        const rawPost = data.post;
+        const authorData = (rawPost?.authorId && typeof rawPost.authorId === 'object')
+          ? rawPost.authorId
+          : (rawPost?.author || {});
+        const newPost = {
+          ...rawPost,
+          author: authorData,
+          authorId: authorData
+        };
         setPostState((prev) => {
           if (prev.data.some((p) => p._id === newPost._id)) return prev;
           return {
@@ -198,9 +210,9 @@ function PostList({ refreshTrigger }) {
 
         // Show toast notification when someone else creates a post
         const myId = currentUser?._id || currentUser?.id;
-        const authorId = newPost.author?._id || newPost.author?.id;
+        const authorId = authorData?._id || authorData?.id;
         if (authorId && myId && authorId.toString() !== myId.toString()) {
-          toast.info(`Bài viết mới từ ${newPost.author?.username || 'người dùng'}: "${(newPost.title || '').slice(0, 30)}..."`);
+          toast.info(`Bài viết mới từ ${authorData?.username || 'người dùng'}: "${(newPost.title || '').slice(0, 30)}..."`);
         }
         console.log('✅ New post received via Socket.IO:', newPost._id);
       }
@@ -337,8 +349,14 @@ function PostList({ refreshTrigger }) {
       <CreatePostBox onPostCreated={handlePostCreated} />
 
       {postState.data.map((post) => {
-        const canEdit = currentUser &&
-          (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id);
+        const author = (post.authorId && typeof post.authorId === 'object')
+          ? post.authorId
+          : (post.author || {});
+        const authorId = author?._id || author?.id;
+        const myId = currentUser?._id || currentUser?.id;
+        const isOwnPost = Boolean(currentUser && myId && authorId && myId.toString() === authorId.toString());
+
+        const canEdit = isOwnPost;
         const canDelete = currentUser && (
           canEdit ||
           ['moderator', 'system_admin'].includes(currentUser.role)
@@ -354,23 +372,19 @@ function PostList({ refreshTrigger }) {
                 <div
                   className="author-avatar"
                   style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
-                  title={`Xem hồ sơ của ${post.author?.username || 'người dùng'}`}
+                  title={`Xem hồ sơ của ${author?.username || 'người dùng'}`}
                   onClick={() => {
-                    const authorId = post.author?._id || post.author?.id;
-                    const myId = currentUser?._id || currentUser?.id;
-                    if (authorId && myId && authorId === myId) navigate('/profile');
+                    if (isOwnPost) navigate('/profile');
                     else if (authorId) navigate(`/users/${authorId}`);
                   }}
                 >
                   {(() => {
-                    const isOwnPost = currentUser &&
-                      (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id);
                     const avatarUrl = isOwnPost
-                      ? (currentUser?.avatarUrl || post.author?.avatarUrl)
-                      : post.author?.avatarUrl;
+                      ? (currentUser?.avatarUrl || author?.avatarUrl)
+                      : author?.avatarUrl;
                     return avatarUrl
                       ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                      : (post.author?.username ? post.author.username.charAt(0).toUpperCase() : 'U');
+                      : (author?.username ? author.username.charAt(0).toUpperCase() : 'U');
                   })()}
                 </div>
                 <div className="author-meta">
@@ -379,15 +393,13 @@ function PostList({ refreshTrigger }) {
                       className="author-name"
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        const authorId = post.author?._id || post.author?.id;
-                        const myId = currentUser?._id || currentUser?.id;
-                        if (authorId && myId && authorId === myId) navigate('/profile');
+                        if (isOwnPost) navigate('/profile');
                         else if (authorId) navigate(`/users/${authorId}`);
                       }}
                     >
-                      {currentUser && (currentUser._id || currentUser.id) === (post.author?._id || post.author?.id)
+                      {isOwnPost
                         ? 'You'
-                        : (post.author?.username || 'Ẩn danh')}
+                        : (author?.username || 'Ẩn danh')}
                     </span>
                     <span className="community-name"> &gt; Cộng đồng chung</span>
                   </div>
@@ -412,18 +424,18 @@ function PostList({ refreshTrigger }) {
               {/* Dropdown Menu Button — hidden while editing */}
               {canDelete && !isEditing && (
                 <div className="post-menu-container">
-                  <button 
-                    className="post-menu-btn" 
+                  <button
+                    className="post-menu-btn"
                     onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
                     title="Tùy chọn"
                   >
                     <FiMoreVertical />
                   </button>
-                  
+
                   {openMenuId === post._id && (
                     <div className="post-dropdown-menu">
                       {canEdit && (
-                        <button 
+                        <button
                           className="menu-item edit"
                           onClick={() => handleEdit(post)}
                         >
@@ -431,7 +443,7 @@ function PostList({ refreshTrigger }) {
                           Chỉnh sửa
                         </button>
                       )}
-                      <button 
+                      <button
                         className="menu-item delete"
                         onClick={() => handleDelete(post._id)}
                       >

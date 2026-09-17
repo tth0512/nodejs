@@ -4,9 +4,9 @@ import Post from '../models/Post.js';
 // 1. Lấy danh sách bài viết (Public)
 export const getPosts = async (req, res) => {
   try {
-    const query = req.query.author ? { author: req.query.author } : {};
+    const query = req.query.author ? { authorId: req.query.author } : {};
     const posts = await Post.find(query)
-      .populate('author', 'username email avatarUrl')
+      .populate('authorId', 'username email avatarUrl')
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
@@ -17,29 +17,31 @@ export const getPosts = async (req, res) => {
 // 2. Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
-    const { title, content, imageUrl } = req.body;
+    const { topic, content, imageUrl, groupId, privacy } = req.body;
     const authorId = req.user?.userId || req.user?.id;
 
     if (!authorId) {
       return res.status(401).json({ success: false, message: 'Chưa đăng nhập hoặc phiên hết hạn!' });
     }
 
-    if (!title || !content) {
-      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ title và content!' });
+    if (!content) {
+      return res.status(400).json({ success: false, message: 'Vui lòng điền nội dung bài viết!' });
     }
 
-    // Support both Cloudinary uploaded file and direct URL/base64
+    // Support both Cloudinary uploaded file and direct URL
     const finalImageUrl = (req.file && req.file.path) ? req.file.path : (imageUrl || '');
 
     const newPost = await Post.create({
-      title,
+      authorId,
+      groupId: groupId || null,
+      topic: topic || '',
       content,
       imageUrl: finalImageUrl,
-      author: authorId
+      privacy: privacy || 'public'
     });
 
     const populatedPost = await Post.findById(newPost._id)
-      .populate('author', 'username email avatarUrl');
+      .populate('authorId', 'username email avatarUrl');
 
     // Emit Socket.IO event to broadcast new post to all connected users
     const io = req.app.get('io');
@@ -57,39 +59,37 @@ export const createPost = async (req, res) => {
 // 3. Sửa bài viết (Chỉ tác giả)
 export const updatePost = async (req, res) => {
   try {
-    const authorId = (req.user?.userId || req.user?.id)?.toString();
+    const userId = (req.user?.userId || req.user?.id)?.toString();
     const post = await Post.findById(req.params.id);
 
     if (!post) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết!' });
     }
 
-    if (post.author.toString() !== authorId) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Bạn không có quyền sửa bài viết của người khác!' 
+    if (post.authorId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền sửa bài viết của người khác!'
       });
     }
 
-    const { title, content, imageUrl } = req.body;
-    post.title = title || post.title;
-    post.content = content || post.content;
-    if (imageUrl !== undefined) {
-      post.imageUrl = imageUrl;
-    }
+    const { topic, content, imageUrl, privacy } = req.body;
+    if (topic    !== undefined) post.topic   = topic;
+    if (content  !== undefined) post.content = content;
+    if (imageUrl !== undefined) post.imageUrl = imageUrl;
+    if (privacy  !== undefined) post.privacy  = privacy;
 
     const updatedPost = await post.save();
-    
-    // Populate author before emitting
+
     const populatedPost = await Post.findById(updatedPost._id)
-      .populate('author', 'username email avatarUrl');
-    
-    // Emit Socket.IO event to broadcast updated post to all connected users
+      .populate('authorId', 'username email avatarUrl');
+
+    // Emit Socket.IO event
     const io = req.app.get('io');
     if (io) {
       io.emit('postUpdated', { post: populatedPost });
     }
-    
+
     res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: populatedPost });
   } catch (error) {
     console.error('Error in updatePost:', error);
@@ -100,33 +100,33 @@ export const updatePost = async (req, res) => {
 // 4. Xóa bài viết (Tác giả hoặc Moderator / System Admin)
 export const deletePost = async (req, res) => {
   try {
-    const authorId = (req.user?.userId || req.user?.id)?.toString();
+    const userId = (req.user?.userId || req.user?.id)?.toString();
     const post = await Post.findById(req.params.id);
 
     if (!post) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết!' });
     }
 
-    // Kiểm tra quyền: Phải là tác giả HOẶC có role quản trị hệ thống
-    const isAuthor = post.author.toString() === authorId;
+    // Kiểm tra quyền: phải là tác giả HOẶC có role quản trị hệ thống
+    const isAuthor       = post.authorId.toString() === userId;
     const hasAdminPrivilege = ['moderator', 'system_admin'].includes(req.user?.role);
 
     if (!isAuthor && !hasAdminPrivilege) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Bạn không có quyền xóa bài viết này!' 
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xóa bài viết này!'
       });
     }
 
     const postId = post._id.toString();
     await post.deleteOne();
-    
-    // Emit Socket.IO event to broadcast post deletion to all connected users
+
+    // Emit Socket.IO event
     const io = req.app.get('io');
     if (io) {
       io.emit('postDeleted', { postId });
     }
-    
+
     res.status(200).json({ success: true, message: 'Đã xóa bài viết thành công!' });
   } catch (error) {
     console.error('Error in deletePost:', error);

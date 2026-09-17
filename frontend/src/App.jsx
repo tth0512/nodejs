@@ -2,7 +2,6 @@
 import { useNavigate, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './context/utils/useAuth.js';
 import { toast } from 'react-toastify';
-import axiosClient from './api/axiosClient.js';
 import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
@@ -13,6 +12,9 @@ import Sidebar from './components/Sidebar.jsx';
 import ProfilePage from './components/ProfilePage.jsx';
 import EditProfile from './components/EditProfile.jsx';
 import Messages from './components/Messages.jsx';
+import AdminOverview from './components/admin/AdminOverview.jsx';
+import UserManagement from './components/admin/UserManagement.jsx';
+import PostManagement from './components/admin/PostManagement.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 import './App.css';
 
@@ -21,7 +23,13 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isAdmin = currentUser?.role === 'system_admin';
+
+  // Admin routes mở rộng feed full (không có right panel)
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   const isFullWidthRoute =
+    isAdminRoute ||
     location.pathname.startsWith('/users/') ||
     location.pathname.startsWith('/profile') ||
     location.pathname.startsWith('/messages');
@@ -49,7 +57,7 @@ function App() {
   return (
     <SocketProvider currentUser={currentUser}>
       <div className="universe-layout">
-        {/* CỘT TRÁI: SIDEBAR */}
+        {/* CỘT TRÁI: SIDEBAR — tự render admin nav khi role = system_admin */}
         <Sidebar />
 
         {/* KHỐI BÊN PHẢI: HEADER + CONTENT */}
@@ -59,33 +67,34 @@ function App() {
           <main className={`content-area ${isFullWidthRoute ? 'content-area--full' : ''}`}>
             <div className={`feed-container ${isFullWidthRoute ? 'feed-container--full' : ''}`}>
               <Routes>
+                {/* ─── User routes ─── */}
                 <Route path="/" element={<Navigate to="/posts" />} />
                 <Route path="/posts" element={<PostList />} />
                 <Route
                   path="/profile"
                   element={
-                    currentUser ? (
-                      <Navigate to={`/users/${currentUser._id || currentUser.id}`} replace />
-                    ) : (
-                      <Navigate to="/login" />
-                    )
+                    currentUser
+                      ? <Navigate to={`/users/${currentUser._id || currentUser.id}`} replace />
+                      : <Navigate to="/login" />
                   }
                 />
                 <Route path="/users/:userId" element={<ProfilePage />} />
-                <Route
-                  path="/profile/edit"
-                  element={currentUser ? <EditProfile /> : <Navigate to="/login" />}
-                />
-                <Route path="/login" element={currentUser ? <Navigate to="/posts" /> : <Login />} />
+                <Route path="/profile/edit" element={currentUser ? <EditProfile /> : <Navigate to="/login" />} />
+                <Route path="/login"    element={currentUser ? <Navigate to="/posts" /> : <Login />} />
                 <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
                 <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
-                <Route path="/messages" element={currentUser ? <Messages /> : <Navigate to="/login" />} />
+                <Route path="/messages"                element={currentUser ? <Messages /> : <Navigate to="/login" />} />
                 <Route path="/messages/new/:newUserId" element={currentUser ? <Messages /> : <Navigate to="/login" />} />
                 <Route path="/messages/:conversationId" element={currentUser ? <Messages /> : <Navigate to="/login" />} />
+
+                {/* ─── Admin routes (chỉ dành cho system_admin) ─── */}
+                <Route path="/admin" element={isAdmin ? <AdminOverview /> : <Navigate to="/posts" />} />
+                <Route path="/admin/users" element={isAdmin ? <UserManagement currentAdmin={currentUser} /> : <Navigate to="/posts" />} />
+                <Route path="/admin/posts" element={isAdmin ? <PostManagement /> : <Navigate to="/posts" />} />
               </Routes>
             </div>
 
-            {/* CỘT PHẢI (Ẩn trên trang Profile & Messages để mở rộng toàn bộ không gian) */}
+            {/* CỘT PHẢI — ẩn trên trang admin, profile, messages */}
             {!isFullWidthRoute && (
               <div className="right-panel">
                 <div className="widget">

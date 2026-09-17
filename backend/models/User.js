@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true, // Không cho trùng username
+    unique: true,
     trim: true
   },
   email: {
@@ -19,32 +19,37 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: [
-      'member',
-      'group_admin',
-      'moderator',
-      'system_admin'
-    ],
-    default: 'member' // Mặc định là member
+    enum: ['member', 'group_admin', 'moderator', 'system_admin'],
+    default: 'member'
   },
-  // Thêm các trường này vào dưới trường role trong file User.js
-  avatarUrl: { type: String, default: '' },
-  coverUrl: { type: String, default: '' },
-  fullName: { type: String, default: '' },
-  bio: { type: String, default: '' },
-  studentId: { type: String, default: '' },
-  major: { type: String, default: '' },
-  cohort: { type: String, default: '' },
-  skills: { type: String, default: '' },
-  interests: { type: String, default: '' },
-  privacyProfile: { type: String, enum: ['public', 'members', 'private'], default: 'public' },
-  privacyContact: { type: String, enum: ['public', 'members', 'private'], default: 'members' },
-  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  followRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // pending requests (private accounts)
-  isPrivate: { type: Boolean, default: false }, // private account toggle
-}, { timestamps: true }); // Tự động tạo createdAt, updatedAt
+  fullName: {
+    type: String,
+    required: true,
+    default: ''
+  },
+  // Profile fields
+  avatarUrl:  { type: String, default: '' },
+  coverUrl:   { type: String, default: '' },
+  bio:        { type: String, default: '' },
+  studentId:  { type: String, default: '' },
+  major:      { type: String, default: '' },
+  cohort:     { type: String, default: '' },
+  skills:     { type: String, default: '' },
+  interests:  { type: String, default: '' },
+  // Privacy settings
+  privacyProfile: { type: String, enum: ['public', 'private'], default: 'public' },
+  privacyContact: { type: String, enum: ['public', 'private'], default: 'public' },
+  isPrivate:      { type: Boolean, default: false },
+  // Account status
+  status: {
+    type: String,
+    enum: ['active', 'locked'],
+    default: 'active'
+  },
+  // Cached counters (denormalized for performance)
+  followersCount: { type: Number, default: 0 },
+  followingCount: { type: Number, default: 0 },
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -6,10 +6,10 @@ import User from '../models/User.js';
 // 1. REGISTER - Đăng ký
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, fullName } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ thông tin!' });
+    if (!username || !email || !password || !fullName) {
+      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ thông tin (username, email, password, fullName)!' });
     }
 
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -23,7 +23,8 @@ export const register = async (req, res) => {
     const newUser = await User.create({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      fullName
     });
 
     res.status(201).json({
@@ -63,10 +64,10 @@ export const login = async (req, res) => {
 
     // Gắn Token vào HttpOnly Cookie
     res.cookie('token', token, {
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
-      sameSite: 'lax', 
-      maxAge: 7 * 24 * 60 * 60 * 1000 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.status(200).json({
@@ -88,8 +89,8 @@ export const logout = (req, res) => {
 // 4. GET ME - Lấy thông tin User hiện tại
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password'); 
-    
+    const user = await User.findById(req.user.userId).select('-password');
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
     }
@@ -108,10 +109,10 @@ export const updateProfile = async (req, res) => {
       fullName, studentId, major, cohort, skills, interests,
       privacyProfile, privacyContact, avatarUrl, coverUrl, bio, isPrivate
     } = req.body;
-    
+
     // Tìm và update User dựa trên ID lấy từ Token (ngăn không cho sửa tài khoản người khác)
     const updatedUser = await User.findByIdAndUpdate(
-      req.user.userId, 
+      req.user.userId,
       {
         fullName, studentId, major, cohort, skills, interests,
         privacyProfile, privacyContact,
@@ -195,4 +196,4 @@ export const uploadCoverController = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-};
+};

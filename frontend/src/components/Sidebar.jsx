@@ -11,6 +11,57 @@ function Sidebar() {
       (location.pathname === `/users/${currentUser._id}` ||
         location.pathname === '/profile/edit'));
 
+  /* ── Admin nav (chỉ hiện khi role = system_admin) ── */
+  if (currentUser?.role === 'system_admin') {
+    return (
+      <aside className="sidebar">
+        <div className="logo-container">
+          <Link to="/" className="logo">UniConnect</Link>
+        </div>
+
+        {/* Divider + label */}
+        <div style={{ marginTop: 28, marginBottom: 4, fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.6px', paddingLeft: 4 }}>
+          Admin Panel
+        </div>
+
+        <nav className="nav-menu" style={{ marginTop: 0 }}>
+          <NavLink
+            to="/admin"
+            end
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <span className="icon">📊</span> Tổng quan
+          </NavLink>
+
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <span className="icon">👥</span> Người dùng
+          </NavLink>
+
+          <NavLink
+            to="/admin/posts"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <span className="icon">📝</span> Bài viết
+          </NavLink>
+
+          {/* Separator */}
+          <div style={{ borderTop: '1px solid #e5e7eb', margin: '8px 0' }}></div>
+
+          <NavLink
+            to="/posts"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <span className="icon">⬅️</span> Về trang chính
+          </NavLink>
+        </nav>
+      </aside>
+    );
+  }
+
+  /* ── User nav bình thường ── */
   return (
     <aside className="sidebar">
       <div className="logo-container">
@@ -20,8 +71,7 @@ function Sidebar() {
       </div>
 
       <nav className="nav-menu">
-        {/* Dùng NavLink thay cho Link để tự động bắt class 'active' */}
-        <NavLink to="/posts" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <NavLink to="/posts" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <span className="icon">🏠</span> Home
         </NavLink>
         <NavLink
@@ -30,13 +80,13 @@ function Sidebar() {
         >
           <span className="icon">👤</span> Profile
         </NavLink>
-        <NavLink to="/messages" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <NavLink to="/messages" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <span className="icon">💬</span> Messages
         </NavLink>
-        <NavLink to="/communities" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <NavLink to="/communities" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <span className="icon">👥</span> Explore Communities
         </NavLink>
-        <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <span className="icon">⚙️</span> Settings
         </NavLink>
       </nav>

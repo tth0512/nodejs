@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 const conversationSchema = new mongoose.Schema({
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  status: { 
-    type: String, 
-    enum: ['accepted', 'pending'], 
-    default: 'accepted' 
+  status: {
+    type: String,
+    enum: ['accepted', 'pending'],
+    default: 'accepted'
   },
   lastMessage: {
     senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

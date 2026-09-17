@@ -1,11 +1,13 @@
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
+import Follow from '../models/Follow.js';
+import Block from '../models/Block.js';
 
 export const sendMessage = async (req, res) => {
   try {
-    const senderId = req.user?.userId || req.user?.id;
-    const { receiverId, content } = req.body;
+    const senderId   = req.user?.userId || req.user?.id;
+    const { receiverId, content, type } = req.body;
 
     if (!senderId) {
       return res.status(401).json({ message: 'Unauthorized: No sender ID' });
@@ -24,46 +26,57 @@ export const sendMessage = async (req, res) => {
       return res.status(404).json({ message: 'Receiver not found' });
     }
 
-    // Privacy Check
-    if (receiver.blockedUsers && receiver.blockedUsers.some(id => id.toString() === senderId.toString())) {
+    // Block check — query the Block model
+    const isBlocked = await Block.findOne({
+      blockerId: receiverId,
+      blockedId: senderId
+    });
+    if (isBlocked) {
       return res.status(403).json({ message: 'You are blocked by this user' });
     }
-    
-    // Check if incoming requests are disabled
-    // If privacyContact is 'private' and receiver does NOT follow sender, block the message
-    if (receiver.privacyContact === 'private' && (!receiver.following || !receiver.following.some(id => id.toString() === senderId.toString()))) {
-      return res.status(403).json({ message: 'This user does not accept message requests' });
+
+    // Privacy check — if receiver's contact is private, they must follow sender
+    if (receiver.privacyContact === 'private') {
+      const receiverFollowsSender = await Follow.findOne({
+        followerId: receiverId,
+        followingId: senderId,
+        status: 'accepted'
+      });
+      if (!receiverFollowsSender) {
+        return res.status(403).json({ message: 'This user does not accept message requests' });
+      }
     }
 
-    // Find if conversation already exists
+    // Find or create conversation
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] }
     });
 
     if (!conversation) {
-      let status = 'pending';
-      const receiverFollowsSender = receiver.following && receiver.following.some(id => id.toString() === senderId.toString());
-      
-      if (receiverFollowsSender) {
-        status = 'accepted';
-      }
+      // Determine conversation status: accepted if receiver follows sender
+      const receiverFollowsSender = await Follow.findOne({
+        followerId: receiverId,
+        followingId: senderId,
+        status: 'accepted'
+      });
 
       conversation = new Conversation({
         participants: [senderId, receiverId],
-        status
+        status: receiverFollowsSender ? 'accepted' : 'pending'
       });
     }
 
-    // Create message
+    // Create message — conversationId stored as String
     const message = new Message({
-      conversationId: conversation._id,
+      conversationId: conversation._id.toString(),
       senderId,
-      content
+      content,
+      type: type || 'text'
     });
-    
+
     await message.save();
 
-    // Update conversation lastMessage
+    // Update conversation's lastMessage cache
     conversation.lastMessage = {
       senderId,
       content,
@@ -71,7 +84,7 @@ export const sendMessage = async (req, res) => {
     };
     await conversation.save();
 
-    // Emit Socket.IO event if io is configured
+    // Emit Socket.IO events
     const io = req.app.get('io');
     if (io) {
       io.to(receiverId.toString()).emit('receiveMessage', message);
@@ -91,7 +104,7 @@ export const getConversations = async (req, res) => {
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    
+
     const conversations = await Conversation.find({ participants: userId })
       .populate('participants', 'fullName avatarUrl username isPrivate')
       .sort({ 'lastMessage.createdAt': -1 });
@@ -112,7 +125,7 @@ export const getMessages = async (req, res) => {
     if (!currentUserId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    
+
     // Ensure user is part of the conversation
     const conversation = await Conversation.findById(conversationId);
     if (!conversation || !conversation.participants.some(p => p.toString() === currentUserId.toString())) {
@@ -120,13 +133,14 @@ export const getMessages = async (req, res) => {
     }
 
     const skip = (page - 1) * limit;
-    
-    const messages = await Message.find({ conversationId })
+
+    // conversationId in Message is stored as String
+    const messages = await Message.find({ conversationId: conversationId.toString() })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    // Return messages in chronological order (oldest first)
+    // Return in chronological order
     res.status(200).json(messages.reverse());
   } catch (error) {
     console.error('Error in getMessages:', error);
