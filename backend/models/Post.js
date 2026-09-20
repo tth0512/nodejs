@@ -35,7 +35,11 @@ const postSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'hidden'],
     default: 'active'
-  }
+  },
+
+  likesCount: { type: Number, default: 0 },
+  commentsCount: { type: Number, default: 0 }
+
 }, { timestamps: true });
 
 const Post = mongoose.model('Post', postSchema);

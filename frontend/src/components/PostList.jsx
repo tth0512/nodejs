@@ -8,6 +8,8 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/utils/useAuth.js';
 import { useSocket } from '../context/SocketContext.jsx';
 import axiosClient from '../api/axiosClient.js';
+import PostActions from './PostActions.jsx';
+import CommentSection from './CommentSection.jsx';
 import './PostList.css';
 
 function CreatePostBox({ onPostCreated }) {
@@ -132,6 +134,19 @@ function PostList({ refreshTrigger }) {
     loading: true,
   });
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openCommentPostIds, setOpenCommentPostIds] = useState(new Set());
+
+  const toggleComments = (postId) => {
+    setOpenCommentPostIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) {
+        next.delete(postId);
+      } else {
+        next.add(postId);
+      }
+      return next;
+    });
+  };
 
   // Inline editing state
   const [editingPostId, setEditingPostId] = useState(null);
@@ -145,11 +160,11 @@ function PostList({ refreshTrigger }) {
     const authorData = (newPost?.authorId && typeof newPost.authorId === 'object')
       ? newPost.authorId
       : (newPost?.author || {
-          _id: currentUser?._id || currentUser?.id,
-          username: currentUser?.username || 'You',
-          email: currentUser?.email || '',
-          avatarUrl: currentUser?.avatarUrl || ''
-        });
+        _id: currentUser?._id || currentUser?.id,
+        username: currentUser?.username || 'You',
+        email: currentUser?.email || '',
+        avatarUrl: currentUser?.avatarUrl || ''
+      });
 
     const normalizedPost = {
       ...newPost,
@@ -241,16 +256,77 @@ function PostList({ refreshTrigger }) {
       }
     };
 
+    const handlePostLikeUpdated = (data) => {
+      if (!ignore && data?.postId) {
+        const myId = (currentUser?._id || currentUser?.userId || currentUser?.id)?.toString();
+        const isMe = data.userId && myId && data.userId.toString() === myId;
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.map((p) =>
+            p._id === data.postId
+              ? {
+                  ...p,
+                  likesCount: data.likesCount,
+                  ...(isMe && data.liked !== undefined ? { isLiked: data.liked } : {})
+                }
+              : p
+          )
+        }));
+      }
+    };
+
+    const handleNewComment = (data) => {
+      if (!ignore && data?.postId) {
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.map((p) =>
+            p._id === data.postId ? { ...p, commentsCount: (p.commentsCount || 0) + 1 } : p
+          )
+        }));
+      }
+    };
+
+    const handleNewReply = (data) => {
+      if (!ignore && data?.postId) {
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.map((p) =>
+            p._id === data.postId ? { ...p, commentsCount: (p.commentsCount || 0) + 1 } : p
+          )
+        }));
+      }
+    };
+
+    const handleCommentDeleted = (data) => {
+      if (!ignore && data?.postId) {
+        const dec = data.deletedCount || 1;
+        setPostState((prev) => ({
+          ...prev,
+          data: prev.data.map((p) =>
+            p._id === data.postId ? { ...p, commentsCount: Math.max(0, (p.commentsCount || dec) - dec) } : p
+          )
+        }));
+      }
+    };
+
     // Attach listeners
     socket.on('newPost', handleNewPost);
     socket.on('postUpdated', handlePostUpdated);
     socket.on('postDeleted', handlePostDeleted);
+    socket.on('postLikeUpdated', handlePostLikeUpdated);
+    socket.on('newComment', handleNewComment);
+    socket.on('newReply', handleNewReply);
+    socket.on('commentDeleted', handleCommentDeleted);
 
     return () => {
       ignore = true;
       socket.off('newPost', handleNewPost);
       socket.off('postUpdated', handlePostUpdated);
       socket.off('postDeleted', handlePostDeleted);
+      socket.off('postLikeUpdated', handlePostLikeUpdated);
+      socket.off('newComment', handleNewComment);
+      socket.off('newReply', handleNewReply);
+      socket.off('commentDeleted', handleCommentDeleted);
     };
   }, [refreshTrigger, socket, currentUser]);
 
@@ -342,241 +418,237 @@ function PostList({ refreshTrigger }) {
   };
 
   if (postState.loading) return <div style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280' }}>Đang tải bảng tin...</div>;
-  if (postState.data.length === 0) return <div style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280' }}>Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!</div>;
+
 
   return (
-    <div className="post-list">
-      <CreatePostBox onPostCreated={handlePostCreated} />
+    <div>
+      <div className="post-list">
+        <CreatePostBox onPostCreated={handlePostCreated} />
 
-      {postState.data.map((post) => {
-        const author = (post.authorId && typeof post.authorId === 'object')
-          ? post.authorId
-          : (post.author || {});
-        const authorId = author?._id || author?.id;
-        const myId = currentUser?._id || currentUser?.id;
-        const isOwnPost = Boolean(currentUser && myId && authorId && myId.toString() === authorId.toString());
+        {postState.data.map((post) => {
+          const author = (post.authorId && typeof post.authorId === 'object')
+            ? post.authorId
+            : (post.author || {});
+          const authorId = author?._id || author?.id;
+          const myId = currentUser?._id || currentUser?.id;
+          const isOwnPost = Boolean(currentUser && myId && authorId && myId.toString() === authorId.toString());
 
-        const canEdit = isOwnPost;
-        const canDelete = currentUser && (
-          canEdit ||
-          ['moderator', 'system_admin'].includes(currentUser.role)
-        );
-        const isEditing = editingPostId === post._id;
+          const canEdit = isOwnPost;
+          const canDelete = currentUser && (
+            canEdit ||
+            ['moderator', 'system_admin'].includes(currentUser.role)
+          );
+          const isEditing = editingPostId === post._id;
 
-        return (
-          <div key={post._id} className={`post-card${isEditing ? ' post-card--editing' : ''}`}>
+          return (
+            <div key={post._id} className={`post-card${isEditing ? ' post-card--editing' : ''}`}>
 
-            {/* 1. HEADER: Thông tin tác giả và nút Dropdown Menu */}
-            <div className="post-header">
-              <div className="post-author-info">
-                <div
-                  className="author-avatar"
-                  style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
-                  title={`Xem hồ sơ của ${author?.username || 'người dùng'}`}
-                  onClick={() => {
-                    if (isOwnPost) navigate('/profile');
-                    else if (authorId) navigate(`/users/${authorId}`);
-                  }}
-                >
-                  {(() => {
-                    const avatarUrl = isOwnPost
-                      ? (currentUser?.avatarUrl || author?.avatarUrl)
-                      : author?.avatarUrl;
-                    return avatarUrl
-                      ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                      : (author?.username ? author.username.charAt(0).toUpperCase() : 'U');
-                  })()}
-                </div>
-                <div className="author-meta">
-                  <div>
-                    <span
-                      className="author-name"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        if (isOwnPost) navigate('/profile');
-                        else if (authorId) navigate(`/users/${authorId}`);
-                      }}
-                    >
-                      {isOwnPost
-                        ? 'You'
-                        : (author?.username || 'Ẩn danh')}
-                    </span>
-                    <span className="community-name"> &gt; Cộng đồng chung</span>
-                  </div>
-                  {/* Hiển thị thời gian (x phút trước) */}
-                  <span
-                    style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    title={isPostEdited(post)
-                      ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
-                      : new Date(post.createdAt).toLocaleString('vi-VN')}
+              {/* 1. HEADER: Thông tin tác giả và nút Dropdown Menu */}
+              <div className="post-header">
+                <div className="post-author-info">
+                  <div
+                    className="author-avatar"
+                    style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
+                    title={`Xem hồ sơ của ${author?.username || 'người dùng'}`}
+                    onClick={() => {
+                      if (isOwnPost) navigate('/profile');
+                      else if (authorId) navigate(`/users/${authorId}`);
+                    }}
                   >
-                    <FiClock /> {isPostEdited(post) ? formatTime(post.updatedAt) : formatTime(post.createdAt)}
-                    {isPostEdited(post) && !isEditing && (
-                      <span className="edited-badge" title={`Chỉnh sửa ${formatTime(post.updatedAt)}`}>
-                        · Đã chỉnh sửa
+                    {(() => {
+                      const avatarUrl = isOwnPost
+                        ? (currentUser?.avatarUrl || author?.avatarUrl)
+                        : author?.avatarUrl;
+                      return avatarUrl
+                        ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        : (author?.username ? author.username.charAt(0).toUpperCase() : 'U');
+                    })()}
+                  </div>
+                  <div className="author-meta">
+                    <div>
+                      <span
+                        className="author-name"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          if (isOwnPost) navigate('/profile');
+                          else if (authorId) navigate(`/users/${authorId}`);
+                        }}
+                      >
+                        {isOwnPost
+                          ? 'You'
+                          : (author?.username || 'Ẩn danh')}
                       </span>
-                    )}
-                    {isEditing && <span className="editing-badge">Đang chỉnh sửa...</span>}
-                  </span>
+                      <span className="community-name"> &gt; Cộng đồng chung</span>
+                    </div>
+                    {/* Hiển thị thời gian (x phút trước) */}
+                    <span
+                      style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      title={isPostEdited(post)
+                        ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
+                        : new Date(post.createdAt).toLocaleString('vi-VN')}
+                    >
+                      <FiClock /> {isPostEdited(post) ? formatTime(post.updatedAt) : formatTime(post.createdAt)}
+                      {isPostEdited(post) && !isEditing && (
+                        <span className="edited-badge" title={`Chỉnh sửa ${formatTime(post.updatedAt)}`}>
+                          · Đã chỉnh sửa
+                        </span>
+                      )}
+                      {isEditing && <span className="editing-badge">Đang chỉnh sửa...</span>}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Dropdown Menu Button — hidden while editing */}
+                {canDelete && !isEditing && (
+                  <div className="post-menu-container">
+                    <button
+                      className="post-menu-btn"
+                      onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
+                      title="Tùy chọn"
+                    >
+                      <FiMoreVertical />
+                    </button>
+
+                    {openMenuId === post._id && (
+                      <div className="post-dropdown-menu">
+                        {canEdit && (
+                          <button
+                            className="menu-item edit"
+                            onClick={() => handleEdit(post)}
+                          >
+                            <FiEdit2 className="menu-icon" />
+                            Chỉnh sửa
+                          </button>
+                        )}
+                        <button
+                          className="menu-item delete"
+                          onClick={() => handleDelete(post._id)}
+                        >
+                          <FiTrash2 className="menu-icon" />
+                          Xóa
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Dropdown Menu Button — hidden while editing */}
-              {canDelete && !isEditing && (
-                <div className="post-menu-container">
-                  <button
-                    className="post-menu-btn"
-                    onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
-                    title="Tùy chọn"
-                  >
-                    <FiMoreVertical />
-                  </button>
+              {/* INLINE EDIT FORM */}
+              {isEditing ? (
+                <div className="inline-edit-form">
+                  <input
+                    type="text"
+                    className="inline-edit-title"
+                    placeholder="Tiêu đề bài viết..."
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                  <textarea
+                    className="inline-edit-content"
+                    placeholder="Nội dung bài viết..."
+                    rows="5"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                  />
 
-                  {openMenuId === post._id && (
-                    <div className="post-dropdown-menu">
-                      {canEdit && (
-                        <button
-                          className="menu-item edit"
-                          onClick={() => handleEdit(post)}
-                        >
-                          <FiEdit2 className="menu-icon" />
-                          Chỉnh sửa
-                        </button>
-                      )}
+                  {/* Image controls */}
+                  <input
+                    ref={editFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleEditImageChange}
+                  />
+                  <div className="inline-edit-image-toolbar">
+                    <button
+                      type="button"
+                      className="attach-btn"
+                      onClick={() => editFileInputRef.current?.click()}
+                    >
+                      <FiImage /> {editImageUrl ? 'Thay ảnh' : 'Thêm ảnh'}
+                    </button>
+                    {editImageUrl && (
                       <button
-                        className="menu-item delete"
-                        onClick={() => handleDelete(post._id)}
+                        type="button"
+                        className="inline-edit-remove-img-btn"
+                        onClick={() => setEditImageUrl('')}
                       >
-                        <FiTrash2 className="menu-icon" />
-                        Xóa
+                        Xóa ảnh
+                      </button>
+                    )}
+                  </div>
+
+                  {editImageUrl && (
+                    <div className="image-preview-container">
+                      <img src={editImageUrl} alt="Preview" className="image-preview" />
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={() => setEditImageUrl('')}
+                        aria-label="Remove image"
+                      >
+                        ×
                       </button>
                     </div>
                   )}
+
+                  {/* Action buttons */}
+                  <div className="inline-edit-actions">
+                    <button
+                      type="button"
+                      className="inline-cancel-btn"
+                      onClick={handleCancelEdit}
+                      disabled={editSubmitting}
+                    >
+                      <FiX /> Hủy
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-save-btn"
+                      onClick={() => handleSaveEdit(post._id)}
+                      disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}
+                    >
+                      <FiCheck /> {editSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  {/* 2. BODY: Nội dung chữ và Ảnh đính kèm */}
+                  <div className="post-body">
+                    {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
+                    <p className="post-content">{post.content}</p>
+                    {post.imageUrl && (
+                      <div className="post-image-placeholder">
+                        <img src={post.imageUrl} alt="Post Cover" className="post-cover" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. FOOTER: Các nút tương tác */}
+                  <PostActions
+                    post={post}
+                    currentUser={currentUser}
+                    isOpenComment={openCommentPostIds.has(post._id)}
+                    onCommentClick={() => toggleComments(post._id)}
+                  />
+
+                  {/* 4. COMMENTS: Khu vực hiển thị bình luận */}
+                  {openCommentPostIds.has(post._id) && (
+                    <CommentSection
+                      postId={post._id}
+                      postAuthorId={post.authorId || post.author}
+                      currentUser={currentUser}
+                    />
+                  )}
+                </>
               )}
+
             </div>
-
-            {/* INLINE EDIT FORM */}
-            {isEditing ? (
-              <div className="inline-edit-form">
-                <input
-                  type="text"
-                  className="inline-edit-title"
-                  placeholder="Tiêu đề bài viết..."
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-                <textarea
-                  className="inline-edit-content"
-                  placeholder="Nội dung bài viết..."
-                  rows="5"
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                />
-
-                {/* Image controls */}
-                <input
-                  ref={editFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={handleEditImageChange}
-                />
-                <div className="inline-edit-image-toolbar">
-                  <button
-                    type="button"
-                    className="attach-btn"
-                    onClick={() => editFileInputRef.current?.click()}
-                  >
-                    <FiImage /> {editImageUrl ? 'Thay ảnh' : 'Thêm ảnh'}
-                  </button>
-                  {editImageUrl && (
-                    <button
-                      type="button"
-                      className="inline-edit-remove-img-btn"
-                      onClick={() => setEditImageUrl('')}
-                    >
-                      Xóa ảnh
-                    </button>
-                  )}
-                </div>
-
-                {editImageUrl && (
-                  <div className="image-preview-container">
-                    <img src={editImageUrl} alt="Preview" className="image-preview" />
-                    <button
-                      type="button"
-                      className="remove-image-btn"
-                      onClick={() => setEditImageUrl('')}
-                      aria-label="Remove image"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="inline-edit-actions">
-                  <button
-                    type="button"
-                    className="inline-cancel-btn"
-                    onClick={handleCancelEdit}
-                    disabled={editSubmitting}
-                  >
-                    <FiX /> Hủy
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-save-btn"
-                    onClick={() => handleSaveEdit(post._id)}
-                    disabled={editSubmitting || !editTitle.trim() || !editContent.trim()}
-                  >
-                    <FiCheck /> {editSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* 2. BODY: Nội dung chữ và Ảnh đính kèm */}
-                <div className="post-body">
-                  {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
-                  <p className="post-content">{post.content}</p>
-                  {post.imageUrl && (
-                    <div className="post-image-placeholder">
-                      <img src={post.imageUrl} alt="Post Cover" className="post-cover" />
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. FOOTER: Các nút tương tác */}
-                <div className="post-actions">
-                  <button className="action-btn">
-                    <FiHeart className="icon" />
-                    <span>Thích</span>
-                  </button>
-                  <button className="action-btn">
-                    <FiMessageSquare className="icon" />
-                    <span>Bình luận</span>
-                  </button>
-                </div>
-
-                {/* 4. COMMENTS: Mockup hiển thị bình luận */}
-                <div className="post-comments-section">
-                  <span className="comments-title">Comments:</span>
-                  <div className="comment-item">
-                    <div className="comment-avatar">E</div>
-                    <div className="comment-bubble">
-                      <h5 className="comment-author">Elon Musk</h5>
-                      <p className="comment-text">Tuyệt vời! Ý tưởng rất hay.</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      {postState.data.length === 0 && <div style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280' }}>Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!</div>}
     </div>
   );
 }

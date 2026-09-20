@@ -1,14 +1,35 @@
 // backend/controllers/postController.js
 import Post from '../models/Post.js';
+import Like from '../models/Like.js';
 
-// 1. Lấy danh sách bài viết (Public)
+// 1. Lấy danh sách bài viết (Public / Optional Auth)
 export const getPosts = async (req, res) => {
   try {
     const query = req.query.author ? { authorId: req.query.author } : {};
     const posts = await Post.find(query)
       .populate('authorId', 'username email avatarUrl')
-      .sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: posts });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const userId = (req.user?.userId || req.user?.id)?.toString();
+
+    let likedPostIds = new Set();
+    if (userId && posts.length > 0) {
+      const postIds = posts.map(p => p._id);
+      const userLikes = await Like.find({
+        userId,
+        targetId: { $in: postIds },
+        targetType: 'Post'
+      }).select('targetId');
+      likedPostIds = new Set(userLikes.map(l => l.targetId.toString()));
+    }
+
+    const postsWithLiked = posts.map(post => ({
+      ...post,
+      isLiked: likedPostIds.has(post._id.toString())
+    }));
+
+    res.status(200).json({ success: true, data: postsWithLiked });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -74,10 +95,10 @@ export const updatePost = async (req, res) => {
     }
 
     const { topic, content, imageUrl, privacy } = req.body;
-    if (topic    !== undefined) post.topic   = topic;
-    if (content  !== undefined) post.content = content;
+    if (topic !== undefined) post.topic = topic;
+    if (content !== undefined) post.content = content;
     if (imageUrl !== undefined) post.imageUrl = imageUrl;
-    if (privacy  !== undefined) post.privacy  = privacy;
+    if (privacy !== undefined) post.privacy = privacy;
 
     const updatedPost = await post.save();
 
@@ -108,7 +129,7 @@ export const deletePost = async (req, res) => {
     }
 
     // Kiểm tra quyền: phải là tác giả HOẶC có role quản trị hệ thống
-    const isAuthor       = post.authorId.toString() === userId;
+    const isAuthor = post.authorId.toString() === userId;
     const hasAdminPrivilege = ['moderator', 'system_admin'].includes(req.user?.role);
 
     if (!isAuthor && !hasAdminPrivilege) {

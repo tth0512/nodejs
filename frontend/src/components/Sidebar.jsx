@@ -8,7 +8,7 @@ function Sidebar() {
   const isProfileActive =
     location.pathname === '/profile' ||
     (currentUser &&
-      (location.pathname === `/users/${currentUser._id}` ||
+      (location.pathname === `/users/${currentUser._id || currentUser.id}` ||
         location.pathname === '/profile/edit'));
 
   /* ── Admin nav (chỉ hiện khi role = system_admin) ── */
@@ -75,7 +75,7 @@ function Sidebar() {
           <span className="icon">🏠</span> Home
         </NavLink>
         <NavLink
-          to={currentUser ? `/users/${currentUser._id}` : '/profile'}
+          to={currentUser ? `/users/${currentUser._id || currentUser.id}` : '/profile'}
           className={() => (isProfileActive ? 'nav-link active' : 'nav-link')}
         >
           <span className="icon">👤</span> Profile

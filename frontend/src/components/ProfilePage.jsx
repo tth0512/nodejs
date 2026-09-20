@@ -155,12 +155,12 @@ function ProfilePage() {
 
   const hasAnyInfo = Boolean(
     user.bio ||
-      user.studentId ||
-      user.major ||
-      user.cohort ||
-      skillsList.length > 0 ||
-      interestsList.length > 0 ||
-      (canViewContact && user.email)
+    user.studentId ||
+    user.major ||
+    user.cohort ||
+    skillsList.length > 0 ||
+    interestsList.length > 0 ||
+    (canViewContact && user.email)
   );
 
   return (
@@ -221,12 +221,12 @@ function ProfilePage() {
                       targetUsername={user.username}
                       onStatusChange={fetchUserData}
                     />
-                    <Link 
-                      to={`/messages/new/${userId}`} 
-                      className="profile-btn" 
-                      style={{ 
-                        background: '#0084ff', 
-                        color: '#ffffff', 
+                    <Link
+                      to={`/messages/new/${userId}`}
+                      className="profile-btn"
+                      style={{
+                        background: '#0084ff',
+                        color: '#ffffff',
                         border: 'none',
                         fontWeight: 600,
                         display: 'flex',
@@ -298,7 +298,7 @@ function ProfilePage() {
               onClick={() => setFollowListMode('followers')}
               title="Xem danh sách Followers"
             >
-              <strong>{user.followers?.length || 0}</strong>
+              <strong>{user.followersCount || 0}</strong>
               <span>Followers</span>
             </div>
 
@@ -307,7 +307,7 @@ function ProfilePage() {
               onClick={() => setFollowListMode('following')}
               title="Xem danh sách Following"
             >
-              <strong>{user.following?.length || 0}</strong>
+              <strong>{user.followingCount || 0}</strong>
               <span>Following</span>
             </div>
           </div>

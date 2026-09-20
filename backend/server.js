@@ -11,6 +11,8 @@ import followRoutes from './routes/followRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import likeRoutes from './routes/likeRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 import { setupSocket } from './socket/socketHandler.js';
 
 dotenv.config();
@@ -49,6 +51,8 @@ app.use('/api/block', followRoutes); // block endpoints are in followRoutes
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/posts', likeRoutes);
+app.use('/api/posts', commentRoutes);
 
 // Setup Socket.IO Gateway
 setupSocket(io);

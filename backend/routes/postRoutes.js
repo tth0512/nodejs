@@ -1,13 +1,12 @@
-// backend/routes/postRoutes.js
 import express from 'express';
 import { getPosts, createPost, updatePost, deletePost } from '../controllers/postController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 import { uploadCloud } from '../utlis/cloudinaryConfig.js';
 
 const router = express.Router();
 
-// Route GET: Xem danh sách bài viết (Ai cũng xem được)
-router.get('/', getPosts);
+// Route GET: Xem danh sách bài viết (Public nhưng giải mã token nếu có để check isLiked)
+router.get('/', optionalAuth, getPosts);
 
 // Route POST: Tạo bài viết (Bắt buộc đăng nhập)
 // router.post('/', protect, createPost);

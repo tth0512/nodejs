@@ -506,3 +506,528 @@
   transform: none;
   box-shadow: none;
 }
+
+/* ==========================================================================
+   LIKE & COMMENT FEATURE STYLES (Facebook Style)
+   ========================================================================== */
+
+.post-interaction-container {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+  padding-top: 6px;
+}
+
+/* ── Thống kê Lượt thích & Số bình luận ── */
+.post-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px 8px 6px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.likes-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heart-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary-color, #F0394F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 9px;
+}
+
+.stat-heart-icon {
+  margin-top: 1px;
+}
+
+.stat-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.comments-count-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.comments-count-btn:hover {
+  color: #1e293b;
+  text-decoration: underline;
+}
+
+/* ── Nút Tương tác Like & Bình luận ── */
+.post-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 2px 0;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.action-button .btn-icon {
+  font-size: 17px;
+  transition: transform 0.2s;
+}
+
+/* Like state */
+.like-button.is-liked {
+  color: var(--primary-color, #F0394F) !important;
+}
+
+.like-button.is-liked .heart-filled,
+.like-button.is-liked .btn-icon,
+.like-button.is-liked .btn-label {
+  color: var(--primary-color, #F0394F) !important;
+}
+
+.like-button.animate-bounce .btn-icon {
+  animation: heartBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartBounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4); }
+  70% { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+/* Comment active state */
+.comment-button.is-active {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ── Comment Section Wrapper ── */
+.comment-section-wrapper {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ── Form nhập bình luận mới ── */
+.new-comment-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.user-avatar-small,
+.comment-avatar-container,
+.reply-avatar-container {
+  flex-shrink: 0;
+}
+
+.avatar-img-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-letter-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color, #F0394F), #fb7185);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.avatar-img-xs {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-letter-xs {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color, #F0394F), #fb7185);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.comment-input-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #f1f5f9;
+  border-radius: 20px;
+  padding: 3px 6px 3px 14px;
+  border: 1.5px solid transparent;
+  transition: all 0.2s;
+}
+
+.comment-input-container:focus-within {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(240, 57, 79, 0.08);
+}
+
+.comment-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  color: #0f172a;
+  padding: 6px 0;
+}
+
+.comment-input::placeholder {
+  color: #94a3b8;
+}
+
+.send-comment-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color, #F0394F);
+  font-size: 16px;
+  padding: 6px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.send-comment-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.send-comment-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+/* ── Comments Display List ── */
+.comments-display-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comments-loading,
+.no-comments-msg {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.comment-thread-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-main-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.comment-body-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-bubble {
+  background-color: #f1f5f9;
+  border-radius: 16px;
+  padding: 8px 14px;
+  display: inline-block;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.comment-author-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.comment-text-content {
+  font-size: 13.5px;
+  color: #334155;
+  margin: 0;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+/* ── Actions dưới bình luận (Like, Reply, Time, Delete) ── */
+.comment-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding-left: 6px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.meta-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+}
+
+.meta-btn:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.meta-btn.liked {
+  color: var(--primary-color, #F0394F);
+  font-weight: 700;
+}
+
+.meta-btn .inline-heart {
+  font-size: 11px;
+}
+
+.meta-btn.delete-btn {
+  color: #94a3b8;
+  padding: 2px;
+}
+
+.meta-btn.delete-btn:hover {
+  color: #ef4444;
+  text-decoration: none;
+}
+
+.comment-time {
+  color: #94a3b8;
+  font-size: 11.5px;
+}
+
+/* ── Toggle replies row ── */
+.replies-toggle-row {
+  margin-top: 6px;
+  padding-left: 6px;
+}
+
+.view-replies-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.view-replies-btn:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.view-replies-btn .corner-icon {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ── Danh sách câu trả lời con (Replies) ── */
+.nested-replies-list {
+  margin-top: 8px;
+  padding-left: 16px;
+  border-left: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.replies-loading {
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 4px 0;
+}
+
+.reply-item-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.reply-body-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-bubble {
+  background-color: #f1f5f9;
+  border-radius: 14px;
+  padding: 6px 12px;
+  display: inline-block;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* ── Form reply con inline ── */
+.inline-reply-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-left: 16px;
+}
+
+.reply-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 3px 8px 3px 12px;
+  transition: all 0.2s;
+}
+
+.reply-input-wrapper:focus-within {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 2px rgba(240, 57, 79, 0.08);
+}
+
+.reply-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12.5px;
+  color: #0f172a;
+  padding: 4px 0;
+}
+
+.reply-input::placeholder {
+  color: #94a3b8;
+}
+
+.reply-submit-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color, #F0394F);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+
+.reply-submit-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.reply-submit-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.reply-cancel-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 11.5px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.reply-cancel-btn:hover {
+  color: #64748b;
+  text-decoration: underline;
+}
+
+/* ── Nút Tải thêm bình luận ── */
+.load-more-comments-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.load-more-comments-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.load-more-comments-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}

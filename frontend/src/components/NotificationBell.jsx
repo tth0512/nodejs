@@ -1,8 +1,10 @@
 // frontend/src/components/NotificationBell.jsx
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FiBell, FiX, FiCheck, FiUserPlus, FiUserCheck, FiClock } from 'react-icons/fi';
+import { FiBell, FiX, FiCheck, FiUserPlus, FiUserCheck, FiClock, FiHeart, FiMessageSquare, FiCornerDownRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAuth } from '../context/utils/useAuth.js';
+import { useSocket } from '../context/SocketContext.jsx';
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../api/followApi.js';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -12,10 +14,14 @@ const TYPE_CONFIG = {
   follow: { icon: FiUserPlus, label: 'đã follow bạn.', color: '#6366f1' },
   follow_request: { icon: FiClock, label: 'gửi yêu cầu follow bạn.', color: '#ca8a04' },
   follow_accept: { icon: FiUserCheck, label: 'đã chấp nhận yêu cầu follow của bạn.', color: '#16a34a' },
+  post_like: { icon: FiHeart, label: 'đã thích bài viết của bạn.', color: '#F0394F' },
+  post_comment: { icon: FiMessageSquare, label: 'đã bình luận về bài viết của bạn.', color: '#F0394F' },
+  comment_reply: { icon: FiCornerDownRight, label: 'đã trả lời bình luận của bạn.', color: '#0284c7' },
 };
 
 function NotificationBell() {
   const { currentUser, socketRef } = useAuth();
+  const contextSocket = useSocket();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -42,25 +48,28 @@ function NotificationBell() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Attach a listener to the shared socket from AuthContext — no new connection created
+  // Attach a listener to the socket
   useEffect(() => {
     if (!currentUser?._id) return;
 
-    const socket = socketRef?.current;
+    const socket = contextSocket || socketRef?.current;
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((c) => c + 1);
+
+      const cfg = TYPE_CONFIG[notification.type] || TYPE_CONFIG.follow;
+      const senderName = notification.sender?.fullName || notification.sender?.username || 'Ai đó';
+      toast.info(`${senderName} ${cfg.label}`);
     };
 
     socket.on('new_notification', handleNewNotification);
 
-    // Remove only this listener on cleanup — do NOT disconnect the shared socket
     return () => {
       socket.off('new_notification', handleNewNotification);
     };
-  }, [currentUser?._id, socketRef]);
+  }, [currentUser?._id, contextSocket, socketRef]);
 
   // Close panel on outside click
   useEffect(() => {
@@ -86,8 +95,10 @@ function NotificationBell() {
         setUnreadCount((c) => Math.max(0, c - 1));
       } catch { /* silent */ }
     }
-    if (notif.sender?._id) {
-      setOpen(false);
+    setOpen(false);
+    if (['post_like', 'post_comment', 'comment_reply'].includes(notif.type)) {
+      navigate('/posts');
+    } else if (notif.sender?._id) {
       navigate(`/users/${notif.sender._id}`);
     }
   };

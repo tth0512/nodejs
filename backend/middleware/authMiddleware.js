@@ -25,6 +25,22 @@ export const protect = (req, res, next) => {
   }
 };
 
+// 1b. Optional Authentication: Kiểm tra nếu có token thì gán req.user, không có thì vẫn next
+export const optionalAuth = (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { ...decoded, id: decoded.userId || decoded.id, userId: decoded.userId || decoded.id };
+  } catch (error) {
+    // Token không hợp lệ thì bỏ qua không gán req.user
+  }
+  next();
+};
+
 // 2. Middleware Phân quyền (Authorization) - Kiểm tra vai trò linh hoạt
 // Dùng Rest parameters (...roles) để nhận vào một mảng các vai trò được phép
 export const authorizeRoles = (...allowedRoles) => {
