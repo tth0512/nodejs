@@ -35,6 +35,52 @@
   position: relative;
 }
 
+/* Default Avatar Placeholder (black background, white uppercase initial) */
+.fb-avatar-placeholder {
+  background-color: var(--text-dark, #000000) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  user-select: none;
+  border-radius: 50% !important;
+  box-sizing: border-box;
+}
+
+.fb-active-avatar.fb-avatar-placeholder {
+  font-size: 18px;
+}
+
+.fb-conv-avatar.fb-avatar-placeholder {
+  font-size: 20px;
+}
+
+.fb-header-avatar.fb-avatar-placeholder {
+  font-size: 16px;
+}
+
+.fb-intro-avatar.fb-avatar-placeholder {
+  font-size: 32px;
+}
+
+.fb-details-avatar.fb-avatar-placeholder {
+  font-size: 28px;
+}
+
+.fb-message-partner-avatar.fb-avatar-placeholder {
+  font-size: 12px;
+}
+
+.fb-call-avatar.fb-avatar-placeholder {
+  font-size: 36px;
+}
+
+.fb-seen-avatar.fb-avatar-placeholder {
+  font-size: 8px;
+}
+
 /* ==========================================================================
    LEFT SIDEBAR: CONVERSATIONS LIST
    ========================================================================== */

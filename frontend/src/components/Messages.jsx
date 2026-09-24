@@ -169,11 +169,17 @@ const Messages = () => {
                 onClick={() => navigate(`/messages/new/${friend._id}`)}
               >
                 <div className="fb-active-avatar-wrap">
-                  <img 
-                    src={friend.avatarUrl || 'https://via.placeholder.com/48'} 
-                    alt={friend.fullName || friend.username}
-                    className="fb-active-avatar"
-                  />
+                  {friend.avatarUrl ? (
+                    <img 
+                      src={friend.avatarUrl} 
+                      alt={friend.fullName || friend.username}
+                      className="fb-active-avatar"
+                    />
+                  ) : (
+                    <div className="fb-active-avatar fb-avatar-placeholder">
+                      {(friend.username || friend.fullName || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <span className="fb-online-badge" />
                 </div>
                 <span className="fb-active-chip-name">
@@ -211,11 +217,17 @@ const Messages = () => {
                   onClick={() => openConversation(conv._id)}
                 >
                   <div className="fb-conv-avatar-wrap">
-                    <img 
-                      src={otherUser.avatarUrl || 'https://via.placeholder.com/56'} 
-                      alt="avatar" 
-                      className="fb-conv-avatar" 
-                    />
+                    {otherUser.avatarUrl ? (
+                      <img 
+                        src={otherUser.avatarUrl} 
+                        alt="avatar" 
+                        className="fb-conv-avatar" 
+                      />
+                    ) : (
+                      <div className="fb-conv-avatar fb-avatar-placeholder">
+                        {(otherUser.username || otherUser.fullName || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <span className="fb-online-badge" />
                   </div>
 

@@ -44,11 +44,17 @@ const ChatDetails = ({ targetUser, currentTheme, onSelectTheme, quickEmoji, onSe
       {/* Profile Overview */}
       <div className="fb-details-header">
         <div className="fb-details-avatar-wrap">
-          <img 
-            src={targetUser.avatarUrl || 'https://via.placeholder.com/80'} 
-            alt={targetUser.fullName || targetUser.username}
-            className="fb-details-avatar" 
-          />
+          {targetUser.avatarUrl ? (
+            <img 
+              src={targetUser.avatarUrl} 
+              alt={targetUser.fullName || targetUser.username}
+              className="fb-details-avatar" 
+            />
+          ) : (
+            <div className="fb-details-avatar fb-avatar-placeholder">
+              {(targetUser.username || targetUser.fullName || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         <h3 className="fb-details-name">{targetUser.fullName || targetUser.username}</h3>
         <span className="fb-details-status">Đang hoạt động trên UniConnect</span>

@@ -254,11 +254,17 @@ const ChatRoom = ({
           </button>
           
           <div className="fb-header-avatar-wrap">
-            <img 
-              src={partner?.avatarUrl || 'https://via.placeholder.com/42'} 
-              alt="avatar" 
-              className="fb-header-avatar"
-            />
+            {partner?.avatarUrl ? (
+              <img 
+                src={partner.avatarUrl} 
+                alt="avatar" 
+                className="fb-header-avatar"
+              />
+            ) : (
+              <div className="fb-header-avatar fb-avatar-placeholder">
+                {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
             <span className="fb-online-badge" />
           </div>
 
@@ -303,11 +309,17 @@ const ChatRoom = ({
       >
         {/* Intro Card at Top */}
         <div className="fb-intro-card">
-          <img 
-            src={partner?.avatarUrl || 'https://via.placeholder.com/80'} 
-            alt="avatar" 
-            className="fb-intro-avatar"
-          />
+          {partner?.avatarUrl ? (
+            <img 
+              src={partner.avatarUrl} 
+              alt="avatar" 
+              className="fb-intro-avatar"
+            />
+          ) : (
+            <div className="fb-intro-avatar fb-avatar-placeholder">
+              {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
           <h2 className="fb-intro-name">{partner?.fullName || partner?.username || 'Người dùng UniConnect'}</h2>
           <p className="fb-intro-sub">Các bạn đã kết nối trên UniConnect. Hãy gửi lời chào!</p>
         </div>
@@ -332,11 +344,17 @@ const ChatRoom = ({
             >
               {!isMine && (
                 showAvatar ? (
-                  <img 
-                    src={partner?.avatarUrl || 'https://via.placeholder.com/28'} 
-                    alt="avatar" 
-                    className="fb-message-partner-avatar"
-                  />
+                  partner?.avatarUrl ? (
+                    <img 
+                      src={partner.avatarUrl} 
+                      alt="avatar" 
+                      className="fb-message-partner-avatar"
+                    />
+                  ) : (
+                    <div className="fb-message-partner-avatar fb-avatar-placeholder">
+                      {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )
                 ) : (
                   <div className="fb-avatar-placeholder-space" />
                 )
@@ -370,11 +388,17 @@ const ChatRoom = ({
         {/* Typing indicator bubble */}
         {isTyping && (
           <div className="fb-message-row theirs">
-            <img 
-              src={partner?.avatarUrl || 'https://via.placeholder.com/28'} 
-              alt="avatar" 
-              className="fb-message-partner-avatar"
-            />
+            {partner?.avatarUrl ? (
+              <img 
+                src={partner.avatarUrl} 
+                alt="avatar" 
+                className="fb-message-partner-avatar"
+              />
+            ) : (
+              <div className="fb-message-partner-avatar fb-avatar-placeholder">
+                {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="fb-typing-bubble">
               <div className="fb-typing-dot" />
               <div className="fb-typing-dot" />
@@ -384,9 +408,15 @@ const ChatRoom = ({
         )}
 
         {/* Seen indicator under last sent message */}
-        {messages.length > 0 && messages[messages.length - 1]?.senderId === (currentUser._id || currentUser.id) && partner?.avatarUrl && (
+        {messages.length > 0 && messages[messages.length - 1]?.senderId === (currentUser._id || currentUser.id) && partner && (
           <div className="fb-seen-receipt" title="Đã xem">
-            <img src={partner.avatarUrl} alt="seen" className="fb-seen-avatar" />
+            {partner.avatarUrl ? (
+              <img src={partner.avatarUrl} alt="seen" className="fb-seen-avatar" />
+            ) : (
+              <div className="fb-seen-avatar fb-avatar-placeholder" style={{ fontSize: '8px' }}>
+                {(partner.username || partner.fullName || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
         )}
 
@@ -467,11 +497,17 @@ const ChatRoom = ({
       {activeCall && (
         <div className="fb-call-modal-backdrop" onClick={() => setActiveCall(null)}>
           <div className="fb-call-card" onClick={(e) => e.stopPropagation()}>
-            <img 
-              src={partner?.avatarUrl || 'https://via.placeholder.com/90'} 
-              alt="avatar" 
-              className="fb-call-avatar"
-            />
+            {partner?.avatarUrl ? (
+              <img 
+                src={partner.avatarUrl} 
+                alt="avatar" 
+                className="fb-call-avatar"
+              />
+            ) : (
+              <div className="fb-call-avatar fb-avatar-placeholder">
+                {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
             <h3 className="fb-call-name">{partner?.fullName || partner?.username || 'Người dùng'}</h3>
             <p className="fb-call-status">
               Đang đổ chuông {activeCall === 'video' ? 'gọi video' : 'cuộc gọi thoại'}...

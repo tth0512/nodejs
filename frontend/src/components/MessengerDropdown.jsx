@@ -133,12 +133,21 @@ const MessengerDropdown = ({ onClose }) => {
                 onClick={() => handleSelectConv(conv._id)}
               >
                 <div className="fb-conv-avatar-wrap" style={{ width: '48px', height: '48px' }}>
-                  <img 
-                    src={otherUser.avatarUrl || 'https://via.placeholder.com/48'} 
-                    alt="avatar" 
-                    className="fb-conv-avatar" 
-                    style={{ width: '48px', height: '48px' }}
-                  />
+                  {otherUser.avatarUrl ? (
+                    <img 
+                      src={otherUser.avatarUrl} 
+                      alt="avatar" 
+                      className="fb-conv-avatar" 
+                      style={{ width: '48px', height: '48px' }}
+                    />
+                  ) : (
+                    <div 
+                      className="fb-conv-avatar fb-avatar-placeholder" 
+                      style={{ width: '48px', height: '48px', fontSize: '18px' }}
+                    >
+                      {(otherUser.username || otherUser.fullName || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <span className="fb-online-badge" />
                 </div>
 
