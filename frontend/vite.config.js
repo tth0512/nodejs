@@ -1,5 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import fs from 'fs'
+
+// Nếu chạy trong Docker container thì backend có hostname là 'backend', còn ngoài máy host thì là 'localhost'
+const isDocker = fs.existsSync('/.dockerenv')
+const backendHost = process.env.VITE_BACKEND_URL || (isDocker ? 'http://backend:5000' : 'http://localhost:5000')
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -9,12 +14,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://backend:5000', // Tên service backend trong docker-compose
+        target: backendHost,
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://backend:5000',
-        ws: true, // Hỗ trợ socket nếu dùng Socket.io
+        target: backendHost,
+        ws: true,
       }
     }
   }

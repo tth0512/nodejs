@@ -225,14 +225,14 @@ function ProfilePage() {
                       to={`/messages/new/${userId}`}
                       className="profile-btn"
                       style={{
-                        background: '#0084ff',
+                        background: 'var(--primary-color, #F0394F)',
                         color: '#ffffff',
                         border: 'none',
                         fontWeight: 600,
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        boxShadow: '0 2px 8px rgba(0, 132, 255, 0.25)'
+                        boxShadow: '0 2px 8px rgba(240, 57, 79, 0.25)'
                       }}
                     >
                       <FiMessageSquare /> Nhắn tin

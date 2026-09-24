@@ -24,7 +24,7 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDetails, setShowDetails] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState('#0084ff');
+  const [currentTheme, setCurrentTheme] = useState('#F0394F');
   const [quickEmoji, setQuickEmoji] = useState('👍');
   const [newChatUser, setNewChatUser] = useState(null);
 
@@ -132,7 +132,7 @@ const Messages = () => {
             <button 
               className="fb-icon-btn" 
               title="Tùy chọn"
-              onClick={() => toast.info('Cài đặt tin nhắn Facebook')}
+              onClick={() => toast.info('Cài đặt tin nhắn')}
             >
               <FiMoreHorizontal />
             </button>
@@ -152,7 +152,7 @@ const Messages = () => {
             <FiSearch />
             <input 
               type="text" 
-              placeholder="Tìm kiếm trên Messenger"
+              placeholder="Tìm kiếm tin nhắn, bạn bè..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

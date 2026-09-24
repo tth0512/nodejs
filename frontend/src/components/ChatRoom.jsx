@@ -26,7 +26,7 @@ const ChatRoom = ({
   onBack,
   onToggleDetails,
   isDetailsOpen,
-  theme = '#0084ff',
+  theme = '#F0394F',
   quickEmoji = '👍'
 }) => {
   const navigate = useNavigate();

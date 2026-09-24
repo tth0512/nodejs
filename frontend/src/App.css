@@ -225,6 +225,27 @@ body {
   width: 100%;
 }
 
+/* Trang Messages: tràn viền toàn bộ không gian (Full-bleed Edge-to-Edge) */
+.content-area.content-area--messages {
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  height: calc(100vh - 70px);
+  overflow: hidden !important;
+  display: flex;
+}
+
+.feed-container.feed-container--messages {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 /* 4. RIGHT PANEL (Cột phải) */
 .right-panel {
   width: 300px;

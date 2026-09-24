@@ -28,11 +28,13 @@ function App() {
   // Admin routes mở rộng feed full (không có right panel)
   const isAdminRoute = location.pathname.startsWith('/admin');
 
+  const isMessagesRoute = location.pathname.startsWith('/messages');
+
   const isFullWidthRoute =
     isAdminRoute ||
     location.pathname.startsWith('/users/') ||
     location.pathname.startsWith('/profile') ||
-    location.pathname.startsWith('/messages');
+    isMessagesRoute;
 
   const handleLogout = async () => {
     try {
@@ -64,8 +66,8 @@ function App() {
         <div className="main-wrapper">
           <Header onLogout={handleLogout} />
 
-          <main className={`content-area ${isFullWidthRoute ? 'content-area--full' : ''}`}>
-            <div className={`feed-container ${isFullWidthRoute ? 'feed-container--full' : ''}`}>
+          <main className={`content-area ${isFullWidthRoute ? 'content-area--full' : ''} ${isMessagesRoute ? 'content-area--messages' : ''}`}>
+            <div className={`feed-container ${isFullWidthRoute ? 'feed-container--full' : ''} ${isMessagesRoute ? 'feed-container--messages' : ''}`}>
               <Routes>
                 {/* ─── User routes ─── */}
                 <Route path="/" element={<Navigate to="/posts" />} />

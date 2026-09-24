@@ -101,7 +101,7 @@ const MessengerDropdown = ({ onClose }) => {
           <FiSearch />
           <input 
             type="text" 
-            placeholder="Tìm kiếm trên Messenger"
+            placeholder="Tìm kiếm tin nhắn..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -167,7 +167,7 @@ const MessengerDropdown = ({ onClose }) => {
           className="fb-dropdown-footer-link"
           onClick={onClose}
         >
-          Xem tất cả trong Messenger
+          Xem tất cả trong Tin nhắn
         </Link>
       </div>
     </div>

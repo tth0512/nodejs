@@ -14,12 +14,12 @@ import {
 import { toast } from 'react-toastify';
 
 const THEMES = [
-  { id: 'blue', name: 'Messenger Blue', value: '#0084ff' },
-  { id: 'sunset', name: 'Sunset', value: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
-  { id: 'berry', name: 'Berry', value: 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)' },
+  { id: 'uniconnect', name: 'UniConnect Red', value: '#F0394F' },
+  { id: 'sunset', name: 'Sunset Rose', value: 'linear-gradient(135deg, #F0394F 0%, #fee140 100%)' },
+  { id: 'berry', name: 'Crimson Berry', value: 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)' },
   { id: 'purple', name: 'Royal Purple', value: 'linear-gradient(135deg, #7f00ff 0%, #e100ff 100%)' },
   { id: 'emerald', name: 'Emerald', value: 'linear-gradient(135deg, #0ba360 0%, #3cba92 100%)' },
-  { id: 'ocean', name: 'Ocean', value: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+  { id: 'ocean', name: 'Ocean Blue', value: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
 ];
 
 const EMOJIS = ['👍', '❤️', '🔥', '🎉', '💯', '🌸'];
