@@ -1,0 +1,128 @@
+/* src/components/VerifyEmail.css */
+.verify-container {
+  max-width: 440px;
+  text-align: center;
+}
+
+.verify-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.verify-icon {
+  font-size: 40px;
+  background: #eff6ff;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #bfdbfe;
+}
+
+.verify-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: -10px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.verify-email-field {
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.verify-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.verify-email-badge {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  border: 1px dashed #cbd5e1;
+  word-break: break-all;
+}
+
+.verify-email-badge strong {
+  color: #2563eb;
+}
+
+.otp-inputs-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 20px 0;
+}
+
+.otp-digit-input {
+  width: 48px;
+  height: 52px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-digit-input:focus {
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.verify-submit-btn {
+  margin-top: 4px;
+}
+
+.verify-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verify-resend-box {
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+.resend-countdown {
+  color: #64748b;
+}
+
+.resend-countdown strong {
+  color: #2563eb;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.resend-btn:hover {
+  color: #1d4ed8;
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

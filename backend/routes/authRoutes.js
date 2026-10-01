@@ -1,13 +1,33 @@
-// backend/routes/authRoutes.js
 import express from 'express';
-import { register, login, logout, getMe, updateProfile, getUserById, uploadAvatarController, uploadCoverController } from '../controllers/authController.js';
+import {
+  register,
+  login,
+  logout,
+  getMe,
+  updateProfile,
+  getUserById,
+  uploadAvatarController,
+  uploadCoverController,
+  verifyEmail,
+  resendVerificationOTP,
+  forgotPassword,
+  verifyResetOTP,
+  resetPassword
+} from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { uploadAvatar, uploadCover } from '../utlis/cloudinaryConfig.js';
 
 const router = express.Router();
 
-// Route cho Đăng ký
+// Route cho Đăng ký & Xác thực Email
 router.post('/register', register);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-otp', resendVerificationOTP);
+
+// Route cho Quên mật khẩu & Đặt lại mật khẩu
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-otp', verifyResetOTP);
+router.post('/reset-password', resetPassword);
 
 // Route cho Đăng nhập
 router.post('/login', login);

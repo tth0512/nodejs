@@ -25,6 +25,8 @@
 .fb-messenger {
   display: flex;
   height: 100%;
+  max-height: 100%;
+  min-height: 0;
   width: 100%;
   background: var(--fb-bg);
   border-radius: 0;
@@ -33,6 +35,7 @@
   border: none;
   font-family: var(--fb-font);
   position: relative;
+  box-sizing: border-box;
 }
 
 /* Default Avatar Placeholder (black background, white uppercase initial) */
@@ -87,11 +90,16 @@
 .fb-sidebar {
   width: 360px;
   min-width: 320px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
   border-right: 1px solid var(--fb-border);
   display: flex;
   flex-direction: column;
   background: var(--fb-bg);
   flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   transition: transform 0.3s ease;
 }
 
@@ -251,7 +259,9 @@
 /* Conversation List */
 .fb-conv-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 6px 8px;
 }
 
@@ -372,13 +382,32 @@
 /* ==========================================================================
    CENTER CHAT ROOM
    ========================================================================== */
+.fb-chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
 .fb-chat-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  position: relative;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
+  position: relative;
+  background: #ffffff;
+  box-sizing: border-box;
 }
 
 .fb-chat-empty-state {
@@ -518,7 +547,9 @@
 /* Messages Feed Area */
 .fb-messages-feed {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
@@ -918,12 +949,17 @@
 .fb-details-pane {
   width: 320px;
   min-width: 280px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
   border-left: 1px solid var(--fb-border);
   background: #ffffff;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   flex-shrink: 0;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
@@ -1041,44 +1077,59 @@
   gap: 12px;
 }
 
-/* Theme picker chips */
-.fb-theme-picker {
+/* Quick Emoji Grid & Button in Details */
+.fb-quick-emoji-grid {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.fb-theme-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.fb-theme-dot:hover {
-  transform: scale(1.15);
-}
-
-.fb-theme-dot.selected {
-  border-color: #050505;
-  transform: scale(1.1);
-}
-
-/* Shared media mock grid */
-.fb-media-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.fb-media-thumb {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 6px;
-  object-fit: cover;
+.fb-quick-emoji-btn {
   background: var(--fb-secondary-bg);
+  border: 1px solid var(--fb-border);
+  border-radius: 10px;
+  font-size: 20px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fb-quick-emoji-btn:hover {
+  transform: scale(1.15);
+  background: var(--fb-primary-light);
+  border-color: var(--fb-primary);
+}
+
+.fb-quick-emoji-btn.active {
+  background: var(--fb-primary-light);
+  border: 2px solid var(--fb-primary);
+  transform: scale(1.08);
+}
+
+/* System message row & pill */
+.fb-system-message-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 12px 0;
+  width: 100%;
+}
+
+.fb-system-message-pill {
+  font-size: 12px;
+  color: var(--fb-text-secondary);
+  background: var(--fb-secondary-bg);
+  border: 1px solid var(--fb-border);
+  padding: 5px 14px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 85%;
+  line-height: 1.4;
+  word-break: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 /* ==========================================================================
@@ -1263,6 +1314,7 @@
   }
 
   .fb-chat-area.hidden-mobile,
+  .fb-chat-main.hidden-mobile,
   .fb-sidebar.hidden-mobile {
     display: none !important;
   }

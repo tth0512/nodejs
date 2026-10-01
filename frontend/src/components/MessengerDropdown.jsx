@@ -35,9 +35,28 @@ const MessengerDropdown = ({ onClose }) => {
         });
       };
 
+      const handleMessageSeen = (data) => {
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c._id === data.conversationId && c.lastMessage) {
+              return {
+                ...c,
+                lastMessage: {
+                  ...c.lastMessage,
+                  status: 'seen'
+                }
+              };
+            }
+            return c;
+          })
+        );
+      };
+
       socket.on('receiveMessage', handleNewMessage);
+      socket.on('messageSeen', handleMessageSeen);
       return () => {
         socket.off('receiveMessage', handleNewMessage);
+        socket.off('messageSeen', handleMessageSeen);
       };
     }
   }, [socket]);
@@ -123,7 +142,9 @@ const MessengerDropdown = ({ onClose }) => {
             );
             if (!otherUser) return null;
 
-            const isSenderMe = conv.lastMessage?.senderId === (currentUser?._id || currentUser?.id);
+            const myId = (currentUser?._id || currentUser?.id)?.toString();
+            const isSenderMe = conv.lastMessage?.senderId?.toString() === myId;
+            const isUnread = !isSenderMe && conv.lastMessage && conv.lastMessage.status !== 'seen';
             const prefix = isSenderMe ? 'Bạn: ' : '';
 
             return (
@@ -153,14 +174,15 @@ const MessengerDropdown = ({ onClose }) => {
 
                 <div className="fb-conv-content">
                   <div className="fb-conv-top-row">
-                    <span className="fb-conv-name" style={{ fontSize: '14px' }}>
+                    <span className={`fb-conv-name ${isUnread ? 'fb-conv-unread' : ''}`} style={{ fontSize: '14px' }}>
                       {otherUser.fullName || otherUser.username}
                     </span>
                   </div>
                   <div className="fb-conv-bottom-row" style={{ fontSize: '12px' }}>
-                    <span className="fb-conv-snippet">
+                    <span className={`fb-conv-snippet ${isUnread ? 'fb-conv-unread' : ''}`}>
                       {prefix}{conv.lastMessage?.content || 'Đã bắt đầu cuộc trò chuyện'}
                     </span>
+                    {isUnread && <span className="fb-unread-dot" />}
                   </div>
                 </div>
               </div>

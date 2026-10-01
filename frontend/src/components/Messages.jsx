@@ -24,7 +24,6 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDetails, setShowDetails] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState('#F0394F');
   const [quickEmoji, setQuickEmoji] = useState('👍');
   const [newChatUser, setNewChatUser] = useState(null);
 
@@ -41,13 +40,54 @@ const Messages = () => {
   }, [newUserId]);
 
   useEffect(() => {
+    if (conversationId && conversations.length > 0) {
+      const conv = conversations.find((c) => c._id === conversationId);
+      if (conv?.quickEmoji) {
+        setQuickEmoji(conv.quickEmoji);
+      }
+    }
+  }, [conversationId, conversations]);
+
+  useEffect(() => {
     if (socket) {
       socket.on('receiveMessage', handleNewMessage);
+      socket.on('messageSeen', handleMessageSeenInList);
+      socket.on('quickEmojiUpdated', handleQuickEmojiUpdated);
       return () => {
         socket.off('receiveMessage', handleNewMessage);
+        socket.off('messageSeen', handleMessageSeenInList);
+        socket.off('quickEmojiUpdated', handleQuickEmojiUpdated);
       };
     }
-  }, [socket]);
+  }, [socket, conversationId]);
+
+  const handleQuickEmojiUpdated = (data) => {
+    if (data.conversationId === conversationId) {
+      setQuickEmoji(data.quickEmoji);
+    }
+    setConversations((prev) =>
+      prev.map((c) =>
+        c._id === data.conversationId ? { ...c, quickEmoji: data.quickEmoji } : c
+      )
+    );
+  };
+
+  const handleMessageSeenInList = (data) => {
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c._id === data.conversationId && c.lastMessage) {
+          return {
+            ...c,
+            lastMessage: {
+              ...c.lastMessage,
+              status: 'seen'
+            }
+          };
+        }
+        return c;
+      })
+    );
+  };
 
   const fetchConversations = async () => {
     try {
@@ -85,7 +125,41 @@ const Messages = () => {
   };
 
   const openConversation = (id) => {
+    setConversations((prev) =>
+      prev.map((c) =>
+        c._id === id && c.lastMessage
+          ? { ...c, lastMessage: { ...c.lastMessage, status: 'seen' } }
+          : c
+      )
+    );
     navigate(`/messages/${id}`);
+  };
+
+  const handleFriendClick = (friend) => {
+    const friendId = friend._id || friend.id;
+    const existingConv = conversations.find((c) =>
+      c.participants.some((p) => (p._id || p.id || p)?.toString() === friendId?.toString())
+    );
+
+    if (existingConv) {
+      openConversation(existingConv._id);
+    } else {
+      navigate(`/messages/new/${friendId}`);
+    }
+  };
+
+  const handleSelectQuickEmoji = async (newEmoji) => {
+    setQuickEmoji(newEmoji);
+    if (conversationId) {
+      try {
+        await axiosClient.patch(`/messages/${conversationId}/quick-emoji`, { quickEmoji: newEmoji });
+      } catch (err) {
+        console.error('Failed to update quick emoji via REST, emitting socket', err);
+        if (socket) {
+          socket.emit('changeQuickEmoji', { conversationId, quickEmoji: newEmoji });
+        }
+      }
+    }
   };
 
   // Find active partner user
@@ -164,9 +238,9 @@ const Messages = () => {
           <div className="fb-active-tray">
             {activeFriends.map((friend) => (
               <div 
-                key={friend._id} 
+                key={friend._id || friend.id} 
                 className="fb-active-user-chip"
-                onClick={() => navigate(`/messages/new/${friend._id}`)}
+                onClick={() => handleFriendClick(friend)}
               >
                 <div className="fb-active-avatar-wrap">
                   {friend.avatarUrl ? (
@@ -206,7 +280,9 @@ const Messages = () => {
               if (!otherUser) return null;
 
               const isSelected = conversationId === conv._id;
-              const isSenderMe = conv.lastMessage?.senderId === (currentUser?._id || currentUser?.id);
+              const myId = (currentUser?._id || currentUser?.id)?.toString();
+              const isSenderMe = conv.lastMessage?.senderId?.toString() === myId;
+              const isUnread = !isSenderMe && conv.lastMessage && conv.lastMessage.status !== 'seen' && !isSelected;
               const previewPrefix = isSenderMe ? 'Bạn: ' : '';
               const timeDisplay = formatRelativeTime(conv.lastMessage?.createdAt);
 
@@ -233,10 +309,12 @@ const Messages = () => {
 
                   <div className="fb-conv-content">
                     <div className="fb-conv-top-row">
-                      <span className="fb-conv-name">{otherUser.fullName || otherUser.username}</span>
+                      <span className={`fb-conv-name ${isUnread ? 'fb-conv-unread' : ''}`}>
+                        {otherUser.fullName || otherUser.username}
+                      </span>
                     </div>
                     <div className="fb-conv-bottom-row">
-                      <span className="fb-conv-snippet">
+                      <span className={`fb-conv-snippet ${isUnread ? 'fb-conv-unread' : ''}`}>
                         {previewPrefix}{conv.lastMessage?.content || 'Đã bắt đầu cuộc trò chuyện'}
                       </span>
                       {timeDisplay && (
@@ -245,6 +323,7 @@ const Messages = () => {
                           <span className="fb-conv-time">{timeDisplay}</span>
                         </>
                       )}
+                      {isUnread && <span className="fb-unread-dot" />}
                     </div>
                   </div>
                 </div>
@@ -255,7 +334,7 @@ const Messages = () => {
       </aside>
 
       {/* CENTER CHAT AREA */}
-      <main className={`fb-chat-area ${(!conversationId && !newUserId) ? 'hidden-mobile' : ''}`}>
+      <main className={`fb-chat-main ${(!conversationId && !newUserId) ? 'hidden-mobile' : ''}`}>
         {conversationId ? (
           <ChatRoom 
             conversationId={conversationId} 
@@ -263,7 +342,6 @@ const Messages = () => {
             onBack={() => navigate('/messages')}
             onToggleDetails={() => setShowDetails(!showDetails)}
             isDetailsOpen={showDetails}
-            theme={currentTheme}
             quickEmoji={quickEmoji}
           />
         ) : newUserId ? (
@@ -274,7 +352,6 @@ const Messages = () => {
             onBack={() => navigate('/messages')}
             onToggleDetails={() => setShowDetails(!showDetails)}
             isDetailsOpen={showDetails}
-            theme={currentTheme}
             quickEmoji={quickEmoji}
           />
         ) : (
@@ -292,10 +369,8 @@ const Messages = () => {
       {(conversationId || newUserId) && showDetails && activePartner && (
         <ChatDetails 
           targetUser={activePartner}
-          currentTheme={currentTheme}
-          onSelectTheme={setCurrentTheme}
           quickEmoji={quickEmoji}
-          onSelectQuickEmoji={setQuickEmoji}
+          onSelectQuickEmoji={handleSelectQuickEmoji}
         />
       )}
     </div>

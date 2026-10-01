@@ -80,7 +80,8 @@ export const sendMessage = async (req, res) => {
     conversation.lastMessage = {
       senderId,
       content,
-      createdAt: message.createdAt
+      createdAt: message.createdAt,
+      status: 'sent'
     };
     await conversation.save();
 
@@ -132,6 +133,40 @@ export const getMessages = async (req, res) => {
       return res.status(404).json({ message: 'Conversation not found or unauthorized' });
     }
 
+    // Mark unread messages sent by other participants as seen
+    const unreadUpdated = await Message.updateMany(
+      {
+        conversationId: conversationId.toString(),
+        senderId: { $ne: currentUserId },
+        status: { $ne: 'seen' }
+      },
+      { $set: { status: 'seen' } }
+    );
+
+    if (conversation.lastMessage && conversation.lastMessage.senderId?.toString() !== currentUserId.toString() && conversation.lastMessage.status !== 'seen') {
+      conversation.lastMessage.status = 'seen';
+      await conversation.save();
+    }
+
+    if (unreadUpdated.modifiedCount > 0) {
+      const io = req.app.get('io');
+      if (io) {
+        const otherParticipants = conversation.participants.filter(
+          p => p.toString() !== currentUserId.toString()
+        );
+        otherParticipants.forEach(pId => {
+          io.to(pId.toString()).emit('messageSeen', {
+            conversationId: conversationId.toString(),
+            seenBy: currentUserId
+          });
+        });
+        io.to(conversationId.toString()).emit('messageSeen', {
+          conversationId: conversationId.toString(),
+          seenBy: currentUserId
+        });
+      }
+    }
+
     const skip = (page - 1) * limit;
 
     // conversationId in Message is stored as String
@@ -144,6 +179,57 @@ export const getMessages = async (req, res) => {
     res.status(200).json(messages.reverse());
   } catch (error) {
     console.error('Error in getMessages:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const updateQuickEmoji = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { quickEmoji } = req.body;
+    const userId = req.user?.userId || req.user?.id;
+    const username = req.user?.username;
+
+    if (!quickEmoji) {
+      return res.status(400).json({ message: 'quickEmoji is required' });
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation || !conversation.participants.some(p => p.toString() === userId.toString())) {
+      return res.status(404).json({ message: 'Conversation not found or unauthorized' });
+    }
+
+    conversation.quickEmoji = quickEmoji;
+    await conversation.save();
+
+    // Create system message announcing who changed the quick emoji
+    const user = await User.findById(userId);
+    const changerName = user?.fullName || username || 'Một người dùng';
+
+    const systemMessage = new Message({
+      conversationId: conversation._id.toString(),
+      senderId: userId,
+      content: `${changerName} đã đổi biểu tượng cảm xúc nhanh thành ${quickEmoji}`,
+      type: 'system',
+      status: 'seen'
+    });
+    await systemMessage.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(conversation._id.toString()).emit('quickEmojiUpdated', {
+        conversationId: conversation._id.toString(),
+        quickEmoji,
+        systemMessage,
+        changedBy: userId,
+        changerName
+      });
+      io.to(conversation._id.toString()).emit('receiveMessage', systemMessage);
+    }
+
+    res.status(200).json({ success: true, quickEmoji, systemMessage });
+  } catch (error) {
+    console.error('Error in updateQuickEmoji:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };

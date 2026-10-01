@@ -47,9 +47,9 @@ export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     // req.user.role đã được giải mã từ token ở bước protect
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        success: false, 
-        message: `Truy cập bị từ chối! Vai trò '${req.user.role}' không có quyền thực hiện hành động này.` 
+      return res.status(403).json({
+        success: false,
+        message: `Truy cập bị từ chối! Vai trò '${req.user.role}' không có quyền thực hiện hành động này.`
       });
     }
     next(); // Có quyền -> Đi tiếp

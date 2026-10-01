@@ -1,6 +1,6 @@
-// src/components/Register.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import axiosClient from '../api/axiosClient.js';
 import './Register.css';
 
@@ -10,31 +10,31 @@ function Register() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     try {
-      await axiosClient.post('/auth/register', {
-        username,
-        email,
+      const response = await axiosClient.post('/auth/register', {
+        username: username.trim(),
+        email: email.trim(),
         password,
       });
 
-      setSuccess('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
-      setUsername('');
-      setEmail('');
-      setPassword('');
+      const registeredEmail = response.data?.email || email.trim();
+      toast.success(response.data?.message || 'Đăng ký thành công! Vui lòng nhập mã xác thực.');
 
-      // Chuyển sang form Login sau 1.5 giây
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      // Chuyển sang trang xác thực email với email vừa đăng ký
+      navigate('/verify-email', { state: { email: registeredEmail } });
     } catch (err) {
       setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,7 +69,9 @@ function Register() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="auth-btn">Đăng ký</button>
+        <button type="submit" className="auth-btn" disabled={loading}>
+          {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+        </button>
       </form>
 
       <div className="auth-switch">

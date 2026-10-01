@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
+import VerifyEmail from './components/VerifyEmail.jsx';
+import ForgotPassword from './components/ForgotPassword.jsx';
 import CreatePost from './components/CreatePost.jsx';
 import PostList from './components/PostList.jsx';
 import Header from './components/Header.jsx';
@@ -84,6 +86,8 @@ function App() {
                 <Route path="/profile/edit" element={currentUser ? <EditProfile /> : <Navigate to="/login" />} />
                 <Route path="/login"    element={currentUser ? <Navigate to="/posts" /> : <Login />} />
                 <Route path="/register" element={currentUser ? <Navigate to="/posts" /> : <Register />} />
+                <Route path="/verify-email" element={currentUser ? <Navigate to="/posts" /> : <VerifyEmail />} />
+                <Route path="/forgot-password" element={currentUser ? <Navigate to="/posts" /> : <ForgotPassword />} />
                 <Route path="/create-post" element={currentUser ? <CreatePost /> : <Navigate to="/login" />} />
                 <Route path="/messages"                element={currentUser ? <Messages /> : <Navigate to="/login" />} />
                 <Route path="/messages/new/:newUserId" element={currentUser ? <Messages /> : <Navigate to="/login" />} />

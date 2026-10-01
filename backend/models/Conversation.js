@@ -10,7 +10,12 @@ const conversationSchema = new mongoose.Schema({
   lastMessage: {
     senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: { type: String },
-    createdAt: { type: Date }
+    createdAt: { type: Date },
+    status: { type: String, enum: ['sent', 'delivered', 'seen'], default: 'sent' }
+  },
+  quickEmoji: {
+    type: String,
+    default: '👍'
   }
 }, { timestamps: true });
 

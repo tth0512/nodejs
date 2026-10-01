@@ -45,6 +45,13 @@ const userSchema = new mongoose.Schema({
     enum: ['active', 'locked'],
     default: 'active'
   },
+  // Email verification
+  isVerified: { type: Boolean, default: false },
+  verificationOTP: { type: String },
+  verificationOTPExpire: { type: Date },
+  // Password reset
+  resetPasswordOTP: { type: String },
+  resetPasswordOTPExpire: { type: Date },
   // Cached counters (denormalized for performance)
   followersCount: { type: Number, default: 0 },
   followingCount: { type: Number, default: 0 },

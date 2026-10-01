@@ -9,19 +9,33 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      const response = await axiosClient.post('/auth/login', { email, password });
+      const response = await axiosClient.post('/auth/login', {
+        email: email.trim(),
+        password
+      });
       login(response.data.user);
       navigate('/posts');
     } catch (err) {
+      if (err.response?.data?.needVerification) {
+        // Tài khoản chưa xác thực email -> chuyển sang trang xác thực
+        navigate('/verify-email', {
+          state: { email: err.response.data.email || email.trim() }
+        });
+        return;
+      }
       setError(err.response?.data?.message || 'Đăng nhập thất bại!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,7 +61,16 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="auth-btn">Đăng nhập</button>
+
+        <div className="auth-extra-links">
+          <Link to="/forgot-password" className="auth-forgot-link">
+            Quên mật khẩu?
+          </Link>
+        </div>
+
+        <button type="submit" className="auth-btn" disabled={loading}>
+          {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+        </button>
       </form>
 
       <div className="auth-switch">

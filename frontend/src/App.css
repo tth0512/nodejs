@@ -1,9 +1,11 @@
 /* Thiết lập cơ bản */
 /* Khai báo font chữ độ dày bình thường (Regular) */
 @font-face {
-  font-family: 'Poppins'; /* Tên bạn tự đặt để lát nữa gọi */
+  font-family: 'Poppins';
+  /* Tên bạn tự đặt để lát nữa gọi */
   src: url('./assets/fonts/VN-Poppins-Regular.ttf') format('truetype');
-  font-weight: 400; /* 400 tương đương Regular */
+  font-weight: 400;
+  /* 400 tương đương Regular */
   font-style: normal;
 }
 
@@ -11,33 +13,38 @@
 @font-face {
   font-family: 'Poppins';
   src: url('./assets/fonts/VN-Poppins-ExtraBold.ttf') format('truetype');
-  font-weight: 700; /* 700 tương đương Bold */
+  font-weight: 700;
+  /* 700 tương đương Bold */
   font-style: normal;
 }
 
 @font-face {
   font-family: 'OpenSans';
   src: url('./assets/fonts/OpenSans.ttf') format('truetype');
-  font-weight: 400; /* 400 tương đương Regular */
+  font-weight: 400;
+  /* 400 tương đương Regular */
   font-style: normal;
 }
 
 @font-face {
   font-family: 'BeVietnamPro';
   src: url('./assets/fonts/BeVietnamPro-Regular.ttf') format('truetype');
-  font-weight: 400; /* 400 tương đương Regular */
+  font-weight: 400;
+  /* 400 tương đương Regular */
   font-style: normal;
 }
 
 @font-face {
   font-family: 'BeVietnamPro-Bold';
   src: url('./assets/fonts/BeVietnamPro-Bold.ttf') format('truetype');
-  font-weight: 700; /* 700 tương đương Bold */
+  font-weight: 700;
+  /* 700 tương đương Bold */
   font-style: normal;
 }
 
 :root {
-  --primary-color: #F0394F; /* Màu đỏ hồng chủ đạo của UniVERSE */
+  --primary-color: #F0394F;
+  /* Màu đỏ hồng chủ đạo của UniVERSE */
   --bg-color: #FFFFFF;
   --text-dark: black;
   --text-gray: #6b7280;
@@ -54,7 +61,8 @@ body {
 /* KHUNG LAYOUT CHÍNH */
 .universe-layout {
   display: flex;
-  height: 100vh; /* Cố định chiều cao bằng màn hình */
+  height: 100vh;
+  /* Cố định chiều cao bằng màn hình */
   overflow: hidden;
 }
 
@@ -68,24 +76,91 @@ body {
   padding: 20px;
   flex-shrink: 0;
   margin-left: 7px;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.sidebar.collapsed {
+  width: 76px;
+  padding: 20px 10px;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.sidebar.collapsed .logo-container {
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
 }
 
 .logo-container .logo {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
   text-decoration: none;
   color: var(--text-dark);
+  white-space: nowrap;
+  width: 100%;
+  text-align: left;
+  display: block;
+}
+
+.logo-container .logo.logo-mini {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-align: center;
+}
+
+.sidebar.collapsed .logo-container .logo {
+  text-align: center;
 }
 
 .logo-container .logo span {
   color: var(--primary-color);
 }
 
+.sidebar-collapse-btn {
+  background: #f8fafc;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 19px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-collapse-btn:hover {
+  background: #fff1f3;
+  color: var(--primary-color, #F0394F);
+  border-color: var(--primary-color, #F0394F);
+}
+
 .nav-menu {
-  margin-top: 30px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+}
+
+.sidebar.collapsed .nav-menu {
+  align-items: center;
+  margin-top: 20px;
 }
 
 .nav-link {
@@ -98,15 +173,46 @@ body {
   align-items: center;
   gap: 10px;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
-.nav-link:hover, .nav-link.active {
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  gap: 0;
+}
+
+.sidebar.collapsed .nav-link .nav-text {
+  display: none;
+}
+
+.sidebar.collapsed .nav-link .icon {
+  margin: 0;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-link:hover,
+.nav-link.active {
   background-color: #F1F1F1;
   color: #F0394F;
 }
 
 .nav-link.active {
   font-weight: bold;
+}
+
+.sidebar.collapsed .my-communities {
+  display: none;
+}
+
+.sidebar.collapsed .admin-panel-label {
+  display: none;
 }
 
 /* Khối My Communities */
@@ -202,7 +308,8 @@ body {
 /* 3. CONTENT AREA (Nơi chứa Bảng tin và Cột phải) */
 .content-area {
   flex-grow: 1;
-  overflow-y: auto; /* Chỉ cho phép cuộn phần này */
+  overflow-y: auto;
+  /* Chỉ cho phép cuộn phần này */
   display: flex;
   justify-content: center;
   padding: 30px;
@@ -211,7 +318,8 @@ body {
 
 .feed-container {
   width: 100%;
-  max-width: 650px; /* Độ rộng tối đa của bài viết */
+  max-width: 650px;
+  /* Độ rộng tối đa của bài viết */
 }
 
 /* Trang Profile: mở rộng toàn bộ không gian sang bên phải */
@@ -230,20 +338,28 @@ body {
   padding: 0 !important;
   margin: 0 !important;
   gap: 0 !important;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 70px) !important;
+  max-height: calc(100vh - 70px) !important;
+  min-height: 0 !important;
   overflow: hidden !important;
-  display: flex;
+  display: flex !important;
+  flex: 1 !important;
+  box-sizing: border-box !important;
 }
 
 .feed-container.feed-container--messages {
   max-width: 100% !important;
   width: 100% !important;
   height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 /* 4. RIGHT PANEL (Cột phải) */
@@ -258,7 +374,7 @@ body {
   background: white;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .widget h3 {
@@ -491,9 +607,17 @@ body {
   border-top: 3px solid var(--primary-color);
 }
 
-.admin-stat-card.info  { border-top-color: #3b82f6; }
-.admin-stat-card.warn  { border-top-color: #f59e0b; }
-.admin-stat-card.muted { border-top-color: #9ca3af; }
+.admin-stat-card.info {
+  border-top-color: #3b82f6;
+}
+
+.admin-stat-card.warn {
+  border-top-color: #f59e0b;
+}
+
+.admin-stat-card.muted {
+  border-top-color: #9ca3af;
+}
 
 .admin-stat-label {
   font-size: 12px;
@@ -784,8 +908,15 @@ body {
 }
 
 @keyframes aModalIn {
-  from { transform: scale(0.97); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .a-modal-header {
@@ -812,7 +943,9 @@ body {
   line-height: 1;
 }
 
-.a-modal-close:hover { color: var(--text-dark); }
+.a-modal-close:hover {
+  color: var(--text-dark);
+}
 
 .a-modal-body {
   padding: 22px;
@@ -829,7 +962,9 @@ body {
 }
 
 /* History sections inside modal */
-.a-history-section { margin-bottom: 20px; }
+.a-history-section {
+  margin-bottom: 20px;
+}
 
 .a-history-section h4 {
   font-size: 14px;
@@ -893,7 +1028,11 @@ body {
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Toast (admin inline) */
 .a-toast {
@@ -905,13 +1044,18 @@ body {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   color: #fff;
   animation: aModalIn 0.18s ease-out;
 }
 
-.a-toast.success { background: #059669; }
-.a-toast.error   { background: var(--primary-color); }
+.a-toast.success {
+  background: #059669;
+}
+
+.a-toast.error {
+  background: var(--primary-color);
+}
 
 /* User info cell */
 .a-user-cell {

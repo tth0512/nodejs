@@ -5,18 +5,12 @@ import { useAuth } from '../context/utils/useAuth.js';
 import { toast } from 'react-toastify';
 import { 
   FiArrowLeft, 
-  FiPhone, 
-  FiVideo, 
   FiInfo, 
   FiPlusCircle, 
   FiImage, 
-  FiSmile, 
-  FiSend,
-  FiX
+  FiSend
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-
-const POPULAR_EMOJIS = ['😀', '😂', '😍', '🥳', '😎', '🥺', '👍', '❤️', '🔥', '🎉', '✨', '💯'];
 
 const ChatRoom = ({ 
   conversationId, 
@@ -26,7 +20,6 @@ const ChatRoom = ({
   onBack,
   onToggleDetails,
   isDetailsOpen,
-  theme = '#F0394F',
   quickEmoji = '👍'
 }) => {
   const navigate = useNavigate();
@@ -40,8 +33,6 @@ const ChatRoom = ({
   const [hasMore, setHasMore] = useState(true);
   const [partner, setPartner] = useState(propTargetUser || null);
   const [isTyping, setIsTyping] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [activeCall, setActiveCall] = useState(null); // 'audio' | 'video' | null
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -80,23 +71,72 @@ const ChatRoom = ({
       
       socket.on('receiveMessage', handleReceiveMessage);
       socket.on('typing', handleTypingEvent);
+      socket.on('messageSeen', handleMessageSeen);
+      socket.on('quickEmojiUpdated', handleQuickEmojiUpdated);
       
       return () => {
         socket.emit('leaveConversation', conversationId);
         socket.off('receiveMessage', handleReceiveMessage);
         socket.off('typing', handleTypingEvent);
+        socket.off('messageSeen', handleMessageSeen);
+        socket.off('quickEmojiUpdated', handleQuickEmojiUpdated);
       };
     }
-  }, [conversationId, isNewChat, socket]);
+  }, [conversationId, isNewChat, socket, currentUser]);
+
+  const handleQuickEmojiUpdated = (data) => {
+    if (data.conversationId === conversationId && data.changerName) {
+      toast.info(`${data.changerName} đã đổi biểu tượng cảm xúc nhanh thành ${data.quickEmoji}`);
+    }
+  };
+
+  // Mark messages from partner as seen when viewing the conversation
+  useEffect(() => {
+    if (!socket || !conversationId || !partner) return;
+
+    const myId = (currentUser?._id || currentUser?.id)?.toString();
+    const partnerId = (partner?._id || partner?.id)?.toString();
+
+    const hasUnreadFromPartner = messages.some(
+      (m) => m.senderId?.toString() === partnerId && m.status !== 'seen'
+    );
+
+    if (hasUnreadFromPartner) {
+      socket.emit('messageSeen', {
+        conversationId,
+        senderId: partnerId
+      });
+    }
+  }, [messages, conversationId, partner, socket, currentUser]);
+
+  const handleMessageSeen = (data) => {
+    if (data.conversationId === conversationId) {
+      const myId = (currentUser?._id || currentUser?.id)?.toString();
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.senderId?.toString() === myId ? { ...m, status: 'seen' } : m
+        )
+      );
+    }
+  };
 
   const handleReceiveMessage = (message) => {
     if (message.conversationId === conversationId) {
+      const myId = (currentUser?._id || currentUser?.id)?.toString();
+      if (message.senderId?.toString() !== myId && socket && message.type !== 'system') {
+        socket.emit('messageSeen', {
+          conversationId,
+          senderId: message.senderId?.toString(),
+          messageId: message._id
+        });
+      }
+
       setMessages((prev) => {
         if (prev.some((m) => m._id === message._id)) return prev;
         return [...prev, message];
       });
       setIsTyping(false);
-      setTimeout(scrollToBottom, 50);
+      setTimeout(() => scrollToBottom(true), 50);
     }
   };
 
@@ -115,7 +155,7 @@ const ChatRoom = ({
       const { data } = await axiosClient.get(`/messages/${conversationId}?page=${pageNum}`);
       if (pageNum === 1) {
         setMessages(data);
-        setTimeout(scrollToBottom, 100);
+        setTimeout(() => scrollToBottom(false), 100);
       } else {
         setMessages((prev) => [...data, ...prev]);
       }
@@ -154,8 +194,18 @@ const ChatRoom = ({
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Direct container scroll to prevent window or layout header jumping/clipping
+  const scrollToBottom = (smooth = true) => {
+    if (messagesContainerRef.current) {
+      if (smooth) {
+        messagesContainerRef.current.scrollTo({
+          top: messagesContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    }
   };
 
   const handleInputChange = (e) => {
@@ -200,7 +250,6 @@ const ChatRoom = ({
       });
 
       setNewMessage('');
-      setShowEmojiPicker(false);
 
       if (isNewChat) {
         navigate(`/messages/${res.data.conversationId}`);
@@ -209,7 +258,7 @@ const ChatRoom = ({
           if (prev.some((m) => m._id === res.data._id)) return prev;
           return [...prev, res.data];
         });
-        setTimeout(scrollToBottom, 50);
+        setTimeout(() => scrollToBottom(true), 50);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Không thể gửi tin nhắn');
@@ -225,15 +274,9 @@ const ChatRoom = ({
     sendDirectMessage(quickEmoji);
   };
 
-  const handleAddEmoji = (emoji) => {
-    setNewMessage((prev) => prev + emoji);
-    setShowEmojiPicker(false);
-  };
-
   const isEmojiOnly = (text) => {
     if (!text) return false;
     const trimmed = text.trim();
-    // Check if only 1 or 2 emojis and short length
     const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,2}$/u;
     return emojiRegex.test(trimmed);
   };
@@ -245,7 +288,7 @@ const ChatRoom = ({
   };
 
   return (
-    <div className="fb-chat-area" style={{ '--messenger-current-theme': theme }}>
+    <div className="fb-chat-area">
       {/* Messenger Header */}
       <div className="fb-chat-header">
         <div className="fb-chat-header-user" onClick={onToggleDetails}>
@@ -277,20 +320,6 @@ const ChatRoom = ({
         </div>
 
         <div className="fb-chat-header-actions">
-          <button 
-            className="fb-header-action-btn" 
-            title="Bắt đầu gọi thoại"
-            onClick={() => setActiveCall('audio')}
-          >
-            <FiPhone />
-          </button>
-          <button 
-            className="fb-header-action-btn" 
-            title="Bắt đầu gọi video"
-            onClick={() => setActiveCall('video')}
-          >
-            <FiVideo />
-          </button>
           <button 
             className={`fb-header-action-btn ${isDetailsOpen ? 'active' : ''}`}
             title="Thông tin cuộc trò chuyện"
@@ -333,7 +362,16 @@ const ChatRoom = ({
         )}
 
         {messages.map((msg, idx) => {
-          const isMine = msg.senderId === (currentUser._id || currentUser.id);
+          // Render system message (e.g., changed quick emoji)
+          if (msg.type === 'system') {
+            return (
+              <div key={msg._id || idx} className="fb-system-message-row">
+                <span className="fb-system-message-pill">{msg.content}</span>
+              </div>
+            );
+          }
+
+          const isMine = msg.senderId === (currentUser?._id || currentUser?.id);
           const emojiOnly = isEmojiOnly(msg.content);
           const showAvatar = !isMine && (idx === messages.length - 1 || messages[idx + 1]?.senderId !== msg.senderId);
 
@@ -367,19 +405,6 @@ const ChatRoom = ({
                 >
                   {msg.content}
                 </div>
-
-                {/* Hover Reactions popover */}
-                <div className="fb-bubble-actions">
-                  {['👍', '❤️', '😆', '😮', '😢', '😡'].map((r) => (
-                    <button 
-                      key={r} 
-                      className="fb-reaction-quick-btn"
-                      onClick={() => toast.success(`Bạn đã thả cảm xúc ${r}`)}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           );
@@ -408,17 +433,20 @@ const ChatRoom = ({
         )}
 
         {/* Seen indicator under last sent message */}
-        {messages.length > 0 && messages[messages.length - 1]?.senderId === (currentUser._id || currentUser.id) && partner && (
-          <div className="fb-seen-receipt" title="Đã xem">
-            {partner.avatarUrl ? (
-              <img src={partner.avatarUrl} alt="seen" className="fb-seen-avatar" />
-            ) : (
-              <div className="fb-seen-avatar fb-avatar-placeholder" style={{ fontSize: '8px' }}>
-                {(partner.username || partner.fullName || 'U').charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-        )}
+        {messages.length > 0 &&
+          messages[messages.length - 1]?.senderId === (currentUser?._id || currentUser?.id) &&
+          messages[messages.length - 1]?.status === 'seen' &&
+          partner && (
+            <div className="fb-seen-receipt" title="Đã xem">
+              {partner.avatarUrl ? (
+                <img src={partner.avatarUrl} alt="seen" className="fb-seen-avatar" />
+              ) : (
+                <div className="fb-seen-avatar fb-avatar-placeholder" style={{ fontSize: '8px' }}>
+                  {(partner.username || partner.fullName || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -450,31 +478,7 @@ const ChatRoom = ({
             value={newMessage}
             onChange={handleInputChange}
           />
-          <button 
-            type="button" 
-            className="fb-emoji-trigger" 
-            title="Biểu tượng cảm xúc"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          >
-            <FiSmile />
-          </button>
         </div>
-
-        {/* Emoji Picker Popover */}
-        {showEmojiPicker && (
-          <div className="fb-emoji-popover">
-            {POPULAR_EMOJIS.map((emoji) => (
-              <button 
-                key={emoji} 
-                type="button" 
-                className="fb-emoji-item-btn"
-                onClick={() => handleAddEmoji(emoji)}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Dynamic Action: Like 👍 or Send */}
         {newMessage.trim() ? (
@@ -492,34 +496,6 @@ const ChatRoom = ({
           </button>
         )}
       </form>
-
-      {/* Messenger Call Preview Modal */}
-      {activeCall && (
-        <div className="fb-call-modal-backdrop" onClick={() => setActiveCall(null)}>
-          <div className="fb-call-card" onClick={(e) => e.stopPropagation()}>
-            {partner?.avatarUrl ? (
-              <img 
-                src={partner.avatarUrl} 
-                alt="avatar" 
-                className="fb-call-avatar"
-              />
-            ) : (
-              <div className="fb-call-avatar fb-avatar-placeholder">
-                {(partner?.username || partner?.fullName || 'U').charAt(0).toUpperCase()}
-              </div>
-            )}
-            <h3 className="fb-call-name">{partner?.fullName || partner?.username || 'Người dùng'}</h3>
-            <p className="fb-call-status">
-              Đang đổ chuông {activeCall === 'video' ? 'gọi video' : 'cuộc gọi thoại'}...
-            </p>
-            <div className="fb-call-actions">
-              <button className="fb-call-hangup-btn" onClick={() => setActiveCall(null)} title="Kết thúc">
-                <FiX />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
