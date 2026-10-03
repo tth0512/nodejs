@@ -21,7 +21,7 @@ function Header({ onLogout }) {
               title="Tin nhắn"
               onClick={() => setIsMessengerOpen(!isMessengerOpen)}
             >
-              <FiMessageSquare />
+              <FiMessageSquare size={19} />
             </button>
             {isMessengerOpen && <MessengerDropdown onClose={() => setIsMessengerOpen(false)} />}
           </div>

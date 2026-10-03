@@ -1,6 +1,7 @@
 // backend/controllers/postController.js
 import Post from '../models/Post.js';
 import Like from '../models/Like.js';
+import CommunityMember from '../models/CommunityMember.js';
 
 // Helper: Đảm bảo imageUrl luôn là mảng cho cả bài viết cũ và mới
 export const ensureArrayImageUrl = (post) => {
@@ -60,13 +61,44 @@ export const extractImageUrls = (req) => {
 // 1. Lấy danh sách bài viết (Public / Optional Auth)
 export const getPosts = async (req, res) => {
   try {
-    const query = req.query.author ? { authorId: req.query.author } : {};
+    const userId = (req.user?.userId || req.user?.id)?.toString();
+
+    let query = {};
+    if (req.query.author) {
+      query = { authorId: req.query.author, status: 'active' };
+    } else {
+      // Khi hiển thị trên Bảng tin / Trang chủ:
+      // - Bài viết thuộc cộng đồng CHỈ hiển thị đối với những người đã tham gia cộng đồng đó.
+      // - Bài viết công khai / chung (không có communityId) hiển thị cho tất cả mọi người.
+      if (userId) {
+        const memberships = await CommunityMember.find({ user: userId }).select('community');
+        const joinedCommunityIds = memberships.map((m) => m.community);
+
+        query = {
+          status: 'active',
+          $or: [
+            { communityId: null },
+            { communityId: { $exists: false } },
+            { communityId: { $in: joinedCommunityIds } }
+          ]
+        };
+      } else {
+        // Chưa đăng nhập -> Chỉ hiển thị bài viết chung không thuộc cộng đồng nào
+        query = {
+          status: 'active',
+          $or: [
+            { communityId: null },
+            { communityId: { $exists: false } }
+          ]
+        };
+      }
+    }
+
     const posts = await Post.find(query)
-      .populate('authorId', 'username email avatarUrl')
+      .populate('authorId', 'username fullName avatarUrl role')
+      .populate('communityId', 'name avatar coverImage privacy')
       .sort({ createdAt: -1 })
       .lean();
-
-    const userId = (req.user?.userId || req.user?.id)?.toString();
 
     let likedPostIds = new Set();
     if (userId && posts.length > 0) {
@@ -97,7 +129,8 @@ export const getPosts = async (req, res) => {
 export const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId)
-      .populate('authorId', 'username email avatarUrl')
+      .populate('authorId', 'username fullName avatarUrl role')
+      .populate('communityId', 'name avatar coverImage privacy')
       .lean();
 
     if (!post) {

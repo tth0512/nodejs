@@ -1,0 +1,190 @@
+/* frontend/src/components/community/CommunityDetail.css */
+.comm-detail-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* ── CỘT TRÁI: Sub-Sidebar của Community (Hình 2) ── */
+.comm-nav-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 90px;
+}
+
+.comm-nav-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.comm-nav-back-link:hover {
+  color: #F0394F;
+}
+
+.comm-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.comm-nav-avatar {
+  flex-shrink: 0;
+}
+
+.comm-nav-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comm-nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  color: #475569;
+  font-size: 14.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.comm-nav-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.comm-nav-item.active {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.comm-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.comm-nav-item.active .comm-nav-icon {
+  color: #2563eb;
+}
+
+.comm-nav-text {
+  flex: 1;
+}
+
+.comm-nav-badge {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.comm-nav-item.active .comm-nav-badge {
+  background: #bfdbfe;
+  color: #1e40af;
+}
+
+/* ── CỘT PHẢI: Nội dung tab ── */
+.comm-content-stage {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Loading & Error pages */
+.comm-detail-loading-page,
+.comm-detail-error-page {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+  width: 100%;
+}
+
+.comm-detail-spinner {
+  margin: 0 auto 16px;
+  width: 38px;
+  height: 38px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #F0394F;
+  border-radius: 50%;
+  animation: commSpin 0.8s linear infinite;
+}
+
+.comm-detail-error-page h2 {
+  margin: 0 0 10px;
+  color: #0f172a;
+}
+
+.comm-btn-back-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .comm-detail-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .comm-nav-sidebar {
+    width: 100%;
+    position: static;
+  }
+  .comm-nav-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .comm-nav-item {
+    white-space: nowrap;
+    padding: 8px 14px;
+  }
+}

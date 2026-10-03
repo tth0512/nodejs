@@ -10,6 +10,7 @@ import axiosClient from '../api/axiosClient.js';
 import PostActions from './PostActions.jsx';
 import CommentSection from './CommentSection.jsx';
 import PostImageGrid from './PostImageGrid.jsx';
+import CommunityAvatar from './community/CommunityAvatar.jsx';
 import './PostList.css';
 
 function CreatePostBox({ onPostCreated }) {
@@ -496,60 +497,136 @@ function PostList({ refreshTrigger }) {
 
               {/* 1. HEADER: Thông tin tác giả và nút Dropdown Menu */}
               <div className="post-header">
-                <div className="post-author-info">
-                  <div
-                    className="author-avatar"
-                    style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
-                    title={`Xem hồ sơ của ${author?.username || 'người dùng'}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isOwnPost) navigate('/profile');
-                      else if (authorId) navigate(`/users/${authorId}`);
-                    }}
-                  >
-                    {(() => {
-                      const avatarUrl = isOwnPost
-                        ? (currentUser?.avatarUrl || author?.avatarUrl)
-                        : author?.avatarUrl;
-                      return avatarUrl
-                        ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                        : (author?.username ? author.username.charAt(0).toUpperCase() : 'U');
-                    })()}
-                  </div>
-                  <div className="author-meta">
-                    <div>
-                      <span
-                        className="author-name"
-                        style={{ cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isOwnPost) navigate('/profile');
-                          else if (authorId) navigate(`/users/${authorId}`);
-                        }}
-                      >
-                        {isOwnPost
-                          ? 'You'
-                          : (author?.username || 'Ẩn danh')}
-                      </span>
-                      <span className="community-name"> &gt; Cộng đồng chung</span>
-                    </div>
-                    {/* Hiển thị thời gian (x phút trước) */}
-                    <span
-                      style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}
-                      title={isPostEdited(post)
-                        ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
-                        : new Date(post.createdAt).toLocaleString('vi-VN')}
-                    >
-                      <FiClock /> {isPostEdited(post) ? formatTime(post.updatedAt) : formatTime(post.createdAt)}
-                      {isPostEdited(post) && !isEditing && (
-                        <span className="edited-badge" title={`Chỉnh sửa ${formatTime(post.updatedAt)}`}>
-                          · Đã chỉnh sửa
-                        </span>
+                {(() => {
+                  const comm = (post.communityId && typeof post.communityId === 'object') ? post.communityId : null;
+                  const commName = comm?.name;
+                  const commId = comm?._id || post.communityId;
+                  const authorDisplayName = isOwnPost ? 'Bạn' : (author?.fullName || author?.username || 'Ẩn danh');
+
+                  return (
+                    <div className="post-author-info">
+                      {/* Avatar: nếu là bài viết cộng đồng thì hiển thị avatar cộng đồng, ngược lại hiển thị avatar tác giả */}
+                      {commName ? (
+                        <div
+                          style={{ cursor: 'pointer' }}
+                          title={`Cộng đồng: ${commName}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/communities/${commId}`);
+                          }}
+                        >
+                          <CommunityAvatar
+                            avatarUrl={comm.avatar}
+                            name={commName}
+                            size="md"
+                            style={{ borderRadius: '10px' }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="author-avatar"
+                          style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
+                          title={`Xem hồ sơ của ${authorDisplayName}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isOwnPost) navigate('/profile');
+                            else if (authorId) navigate(`/users/${authorId}`);
+                          }}
+                        >
+                          {(() => {
+                            const avatarUrl = isOwnPost
+                              ? (currentUser?.avatarUrl || author?.avatarUrl)
+                              : author?.avatarUrl;
+                            return avatarUrl
+                              ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                              : (author?.username ? author.username.charAt(0).toUpperCase() : 'U');
+                          })()}
+                        </div>
                       )}
-                      {isEditing && <span className="editing-badge">Đang chỉnh sửa...</span>}
-                    </span>
-                  </div>
-                </div>
+
+                      {/* Meta thông tin: Nếu là bài viết thuộc cộng đồng:
+                          - Dòng trên: Tên cộng đồng
+                          - Dòng bên dưới: Chữ bé hơn là tên tác giả bài viết + thời gian
+                      */}
+                      {commName ? (
+                        <div className="post-comm-meta-wrap">
+                          {/* Dòng trên: Tên cộng đồng */}
+                          <span
+                            className="post-comm-name-top"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/communities/${commId}`);
+                            }}
+                            title={`Xem cộng đồng ${commName}`}
+                          >
+                            {commName}
+                          </span>
+
+                          {/* Dòng bên dưới: Chữ bé hơn là tác giả bài viết + thời gian */}
+                          <div className="post-comm-author-sub">
+                            <span
+                              className="post-comm-author-sub-name"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isOwnPost) navigate('/profile');
+                                else if (authorId) navigate(`/users/${authorId}`);
+                              }}
+                              title={`Tác giả: ${authorDisplayName}`}
+                            >
+                              {authorDisplayName}
+                            </span>
+                            <span className="post-comm-dot">•</span>
+                            <span
+                              className="post-comm-time"
+                              title={isPostEdited(post)
+                                ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
+                                : new Date(post.createdAt).toLocaleString('vi-VN')}
+                            >
+                              <FiClock size={11} /> {isPostEdited(post) ? formatTime(post.updatedAt) : formatTime(post.createdAt)}
+                            </span>
+                            {isPostEdited(post) && !isEditing && (
+                              <span className="edited-badge" title={`Chỉnh sửa ${formatTime(post.updatedAt)}`}>
+                                · Đã chỉnh sửa
+                              </span>
+                            )}
+                            {isEditing && <span className="editing-badge">Đang chỉnh sửa...</span>}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="author-meta">
+                          <div>
+                            <span
+                              className="author-name"
+                              style={{ cursor: 'pointer' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isOwnPost) navigate('/profile');
+                                else if (authorId) navigate(`/users/${authorId}`);
+                              }}
+                            >
+                              {authorDisplayName}
+                            </span>
+                          </div>
+                          {/* Hiển thị thời gian (x phút trước) */}
+                          <span
+                            style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title={isPostEdited(post)
+                              ? `Đăng: ${new Date(post.createdAt).toLocaleString('vi-VN')} · Chỉnh sửa: ${new Date(post.updatedAt).toLocaleString('vi-VN')}`
+                              : new Date(post.createdAt).toLocaleString('vi-VN')}
+                          >
+                            <FiClock /> {isPostEdited(post) ? formatTime(post.updatedAt) : formatTime(post.createdAt)}
+                            {isPostEdited(post) && !isEditing && (
+                              <span className="edited-badge" title={`Chỉnh sửa ${formatTime(post.updatedAt)}`}>
+                                · Đã chỉnh sửa
+                              </span>
+                            )}
+                            {isEditing && <span className="editing-badge">Đang chỉnh sửa...</span>}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Dropdown Menu Button — hidden while editing */}
                 {canDelete && !isEditing && (

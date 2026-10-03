@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { FiMenu } from 'react-icons/fi';
+import {
+  FiMenu,
+  FiHome,
+  FiUser,
+  FiMessageSquare,
+  FiCompass,
+  FiSettings,
+  FiBarChart2,
+  FiUsers,
+  FiFileText,
+  FiArrowLeft
+} from 'react-icons/fi';
 import { useAuth } from '../context/utils/useAuth.js';
 
 function Sidebar() {
@@ -60,7 +71,7 @@ function Sidebar() {
             title={isCollapsed ? "Tổng quan" : undefined}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <span className="icon">📊</span>
+            <span className="icon"><FiBarChart2 size={20} /></span>
             <span className="nav-text">Tổng quan</span>
           </NavLink>
 
@@ -69,7 +80,7 @@ function Sidebar() {
             title={isCollapsed ? "Người dùng" : undefined}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <span className="icon">👥</span>
+            <span className="icon"><FiUsers size={20} /></span>
             <span className="nav-text">Người dùng</span>
           </NavLink>
 
@@ -78,7 +89,7 @@ function Sidebar() {
             title={isCollapsed ? "Bài viết" : undefined}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <span className="icon">📝</span>
+            <span className="icon"><FiFileText size={20} /></span>
             <span className="nav-text">Bài viết</span>
           </NavLink>
 
@@ -90,7 +101,7 @@ function Sidebar() {
             title={isCollapsed ? "Về trang chính" : undefined}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <span className="icon">⬅️</span>
+            <span className="icon"><FiArrowLeft size={20} /></span>
             <span className="nav-text">Về trang chính</span>
           </NavLink>
         </nav>
@@ -128,7 +139,7 @@ function Sidebar() {
           title={isCollapsed ? "Home" : undefined}
           className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
         >
-          <span className="icon">🏠</span>
+          <span className="icon"><FiHome size={20} /></span>
           <span className="nav-text">Home</span>
         </NavLink>
         <NavLink
@@ -136,7 +147,7 @@ function Sidebar() {
           title={isCollapsed ? "Profile" : undefined}
           className={() => (isProfileActive ? 'nav-link active' : 'nav-link')}
         >
-          <span className="icon">👤</span>
+          <span className="icon"><FiUser size={20} /></span>
           <span className="nav-text">Profile</span>
         </NavLink>
         <NavLink
@@ -144,7 +155,7 @@ function Sidebar() {
           title={isCollapsed ? "Messages" : undefined}
           className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
         >
-          <span className="icon">💬</span>
+          <span className="icon"><FiMessageSquare size={20} /></span>
           <span className="nav-text">Messages</span>
         </NavLink>
         <NavLink
@@ -152,7 +163,7 @@ function Sidebar() {
           title={isCollapsed ? "Explore Communities" : undefined}
           className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
         >
-          <span className="icon">👥</span>
+          <span className="icon"><FiCompass size={20} /></span>
           <span className="nav-text">Explore Communities</span>
         </NavLink>
         <NavLink
@@ -160,27 +171,10 @@ function Sidebar() {
           title={isCollapsed ? "Settings" : undefined}
           className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
         >
-          <span className="icon">⚙️</span>
+          <span className="icon"><FiSettings size={20} /></span>
           <span className="nav-text">Settings</span>
         </NavLink>
       </nav>
-
-      {currentUser && (
-        <div className="my-communities">
-          <div className="communities-header">
-            <h3>My Communities</h3>
-            <span className="badge">19</span>
-          </div>
-          <div className="community-item">
-            <div className="avatar">W</div>
-            <div className="info">
-              <h4>Websters Shivaji</h4>
-              <p>764 members</p>
-            </div>
-          </div>
-          <button className="see-all-btn">See All</button>
-        </div>
-      )}
     </aside>
   );
 }

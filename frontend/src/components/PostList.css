@@ -1089,4 +1089,60 @@
 .load-more-comments-btn:hover {
   background-color: #f1f5f9;
   color: #0f172a;
+}
+
+/* ================= COMMUNITY POST HEADER ON HOME ================= */
+.post-comm-meta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-comm-name-top {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  line-height: 1.25;
+}
+
+.post-comm-name-top:hover {
+  color: #F0394F;
+  text-decoration: underline;
+}
+
+.post-comm-author-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.post-comm-author-sub-name {
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.post-comm-author-sub-name:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.post-comm-dot {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.post-comm-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #64748b;
+  font-size: 12px;
 }

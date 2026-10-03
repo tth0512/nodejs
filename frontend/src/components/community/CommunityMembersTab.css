@@ -1,0 +1,220 @@
+/* frontend/src/components/community/CommunityMembersTab.css */
+.comm-members-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 1. Search Box */
+.comm-members-search-wrap {
+  width: 100%;
+}
+
+.comm-members-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+}
+
+.comm-members-search-box:focus-within {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.comm-members-search-icon {
+  color: #94a3b8;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.comm-members-search-input {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #1e293b;
+}
+
+.comm-members-search-clear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* 2. Filter Pills */
+.comm-members-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.comm-filter-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.comm-filter-pill:hover {
+  background: #f1f5f9;
+}
+
+.comm-filter-pill.active {
+  background: #F0394F;
+  border-color: #F0394F;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(240, 57, 79, 0.25);
+}
+
+/* 3. Members Card & List */
+.comm-members-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.comm-members-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.comm-member-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.comm-member-row:last-child {
+  border-bottom: none;
+}
+
+.comm-member-row:hover {
+  background: #f8fafc;
+}
+
+/* Avatar */
+.comm-member-avatar-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.comm-member-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comm-member-avatar-letter {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Name */
+.comm-member-name-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.comm-member-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.comm-member-username {
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+/* Badges */
+.comm-member-role-wrap {
+  flex-shrink: 0;
+}
+
+.comm-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.comm-role-badge.owner {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.comm-role-badge.admin {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.comm-role-badge.member {
+  background: transparent;
+  color: #64748b;
+}
+
+/* Loading & Empty */
+.comm-members-loading {
+  padding: 48px;
+  text-align: center;
+  color: #64748b;
+}
+
+.comm-members-spinner {
+  margin: 0 auto 12px;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #F0394F;
+  border-radius: 50%;
+  animation: commSpin 0.8s linear infinite;
+}
+
+.comm-members-empty {
+  padding: 48px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.comm-members-empty p {
+  margin: 10px 0 0;
+  font-size: 14px;
+}

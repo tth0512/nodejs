@@ -1,0 +1,138 @@
+/* frontend/src/components/community/CommunityCard.css */
+.comm-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.comm-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+/* 1. Cover Banner */
+.comm-card-cover {
+  position: relative;
+  height: 110px;
+  width: 100%;
+}
+
+/* Avatar badge overlapping */
+.comm-card-avatar-wrap {
+  position: absolute;
+  bottom: -22px;
+  left: 20px;
+}
+
+.comm-card-avatar {
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 2. Card Body */
+.comm-card-body {
+  padding: 30px 20px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.comm-card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.comm-card-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comm-privacy-badge {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.comm-card-members {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.comm-card-desc {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 3. Footer Action Buttons */
+.comm-card-footer {
+  margin-top: auto;
+}
+
+.comm-btn-view {
+  width: 100%;
+  padding: 10px 0;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.comm-btn-view:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.comm-btn-join {
+  width: 100%;
+  padding: 10px 0;
+  background: #00a854;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 168, 84, 0.25);
+}
+
+.comm-btn-join:hover {
+  background: #008f47;
+}
+
+.comm-btn-join:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

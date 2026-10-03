@@ -165,14 +165,14 @@ body {
 
 .nav-link {
   text-decoration: none;
-  color: black;
+  color: #334155;
   font-weight: 500;
-  padding: 12px 15px;
-  border-radius: 8px;
+  padding: 11px 16px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
+  gap: 14px;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
@@ -189,64 +189,42 @@ body {
   display: none;
 }
 
-.sidebar.collapsed .nav-link .icon {
-  margin: 0;
-  font-size: 20px;
+.nav-link .icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 20px;
+  color: #64748b;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
 }
 
-.nav-link:hover,
-.nav-link.active {
-  background-color: #F1F1F1;
+.sidebar.collapsed .nav-link .icon {
+  margin: 0;
+  font-size: 20px;
+}
+
+.nav-link:hover {
+  background-color: #f1f5f9;
+  color: #F0394F;
+}
+
+.nav-link:hover .icon {
   color: #F0394F;
 }
 
 .nav-link.active {
-  font-weight: bold;
+  background-color: #fff1f2;
+  color: #F0394F;
+  font-weight: 700;
 }
 
-.sidebar.collapsed .my-communities {
-  display: none;
+.nav-link.active .icon {
+  color: #F0394F;
 }
 
 .sidebar.collapsed .admin-panel-label {
   display: none;
-}
-
-/* Khối My Communities */
-.my-communities {
-  margin-top: 40px;
-  margin-left: 17px;
-}
-
-.communities-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  color: var(--text-gray);
-  margin-bottom: 15px;
-}
-
-.badge {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
-.see-all-btn {
-  width: 100%;
-  padding: 10px;
-  background: white;
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
-  border-radius: 8px;
-  margin-top: 15px;
-  cursor: pointer;
 }
 
 /* 2. MAIN WRAPPER (Phần bên phải) */
@@ -276,13 +254,24 @@ body {
 }
 
 .icon-btn {
-  background: #f3f4f6;
+  background: #f1f5f9;
   border: none;
   border-radius: 50%;
   width: 40px;
   height: 40px;
   cursor: pointer;
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover,
+.icon-btn.active {
+  background: #fee2e2;
+  color: #F0394F;
 }
 
 .user-profile-dropdown {

@@ -9,10 +9,11 @@ import {
   getUserCommunities,
   joinCommunity,
   leaveCommunity,
-  createCommunityPost
+  createCommunityPost,
+  getCommunityMembers
 } from '../controllers/communityController.js';
 import { protect, optionalAuth } from '../middleware/authMiddleware.js';
-import { uploadCloud, uploadAvatar } from '../utlis/cloudinaryConfig.js';
+import { uploadCloud } from '../utlis/cloudinaryConfig.js';
 
 const router = express.Router();
 
@@ -25,8 +26,16 @@ router.get('/my-communities', protect, getUserCommunities);
 // 3. GET /api/communities - Danh sách tất cả cộng đồng (kèm search ?search=)
 router.get('/', optionalAuth, getCommunities);
 
-// 4. POST /api/communities/create - Tạo cộng đồng mới
-router.post('/create', protect, uploadAvatar.single('avatar'), createCommunity);
+// 4. POST /api/communities/create - Tạo cộng đồng mới (hỗ trợ avatar & coverImage)
+router.post(
+  '/create',
+  protect,
+  uploadCloud.fields([
+    { name: 'avatar', maxCount: 1 },
+    { name: 'coverImage', maxCount: 1 }
+  ]),
+  createCommunity
+);
 
 // 5. POST /api/communities/:communityId/join - Tham gia cộng đồng
 router.post('/:communityId/join', protect, joinCommunity);
@@ -47,6 +56,9 @@ router.post(
 
 // 8. GET /api/communities/:communityId - Xem chi tiết cộng đồng & bài viết
 router.get('/:communityId', optionalAuth, getCommunityById);
+
+// 8.1. GET /api/communities/:communityId/members - Xem danh sách thành viên cộng đồng
+router.get('/:communityId/members', optionalAuth, getCommunityMembers);
 
 // 9. GET /api/communities/:communityId/:postId - Xem bài viết cụ thể
 router.get('/:communityId/:postId', optionalAuth, getCommunityPost);

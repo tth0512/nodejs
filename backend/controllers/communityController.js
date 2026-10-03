@@ -5,6 +5,7 @@ import CommunityMember from '../models/CommunityMember.js';
 import Post from '../models/Post.js';
 import Like from '../models/Like.js';
 import { extractImageUrls, ensureArrayImageUrl } from './postController.js';
+import { createAndEmitNotification } from '../utlis/notificationHelper.js';
 
 // 1. GET /api/communities/feed - Lấy toàn bộ bài viết từ các cộng đồng mà người dùng đã tham gia
 export const getCommunityFeed = async (req, res) => {
@@ -233,7 +234,7 @@ export const getCommunityPost = async (req, res) => {
 export const createCommunity = async (req, res) => {
   try {
     const userId = (req.user?.userId || req.user?.id)?.toString();
-    const { name, description, privacy, avatar, coverImage } = req.body;
+    const { name, description, privacy } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập!' });
@@ -248,13 +249,17 @@ export const createCommunity = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Tên cộng đồng này đã tồn tại!' });
     }
 
+    // Lấy ảnh avatar và coverImage từ Multer upload hoặc body
+    const avatarUrl = req.files?.avatar?.[0]?.path || req.file?.path || req.body.avatar || '';
+    const coverUrl = req.files?.coverImage?.[0]?.path || req.body.coverImage || '';
+
     // 1. Tạo Community với memberCount mặc định là 1 (người tạo)
     const newCommunity = await Community.create({
       name: name.trim(),
       description: description?.trim() || '',
       privacy: privacy === 'private' ? 'private' : 'public',
-      avatar: avatar || '',
-      coverImage: coverImage || '',
+      avatar: avatarUrl,
+      coverImage: coverUrl,
       creator: userId,
       memberCount: 1
     });
@@ -281,6 +286,88 @@ export const createCommunity = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in createCommunity:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 4.1. GET /api/communities/:communityId/members - Lấy danh sách thành viên (Admin/Owner trước, sau đó A-Z)
+export const getCommunityMembers = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    const { search, role } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(communityId)) {
+      return res.status(400).json({ success: false, message: 'Mã cộng đồng không hợp lệ!' });
+    }
+
+    const community = await Community.findById(communityId).select('creator name privacy');
+    if (!community) {
+      return res.status(404).json({ success: false, message: 'Cộng đồng không tồn tại!' });
+    }
+
+    const query = { community: community._id };
+    if (role && role !== 'all') {
+      query.role = role;
+    }
+
+    let members = await CommunityMember.find(query)
+      .populate('user', 'username fullName avatarUrl email role')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    // Lọc các user bị null/xóa
+    members = members.filter((m) => m.user);
+
+    // Tìm kiếm theo từ khóa nếu có
+    if (search && search.trim()) {
+      const s = search.trim().toLowerCase();
+      members = members.filter((m) => {
+        const username = (m.user?.username || '').toLowerCase();
+        const fullName = (m.user?.fullName || '').toLowerCase();
+        return username.includes(s) || fullName.includes(s);
+      });
+    }
+
+    // Sắp xếp theo yêu cầu:
+    // 1. Creator (Owner) đứng đầu tiên
+    // 2. Các Admin khác tiếp theo
+    // 3. Các thành viên khác sắp xếp theo thứ tự bảng chữ cái A-Z
+    const creatorId = community.creator?.toString();
+
+    members.sort((a, b) => {
+      const aIsCreator = a.user._id?.toString() === creatorId;
+      const bIsCreator = b.user._id?.toString() === creatorId;
+      if (aIsCreator && !bIsCreator) return -1;
+      if (!aIsCreator && bIsCreator) return 1;
+
+      const aIsAdmin = a.role === 'admin';
+      const bIsAdmin = b.role === 'admin';
+      if (aIsAdmin && !bIsAdmin) return -1;
+      if (!aIsAdmin && bIsAdmin) return 1;
+
+      const aName = (a.user.fullName || a.user.username || '').toLowerCase();
+      const bName = (b.user.fullName || b.user.username || '').toLowerCase();
+      return aName.localeCompare(bName, 'vi');
+    });
+
+    const formatted = members.map((m) => {
+      const isCreator = m.user._id?.toString() === creatorId;
+      return {
+        _id: m._id,
+        user: m.user,
+        role: m.role,
+        isCreator,
+        joinedAt: m.joinedAt
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: formatted.length,
+      data: formatted
+    });
+  } catch (error) {
+    console.error('Error in getCommunityMembers:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -517,6 +604,25 @@ export const createCommunityPost = async (req, res) => {
     if (io) {
       io.emit('newPost', { post: formattedPost });
       io.to(`community_${communityId}`).emit('newCommunityPost', { post: formattedPost });
+    }
+
+    // Gửi thông báo cho tất cả thành viên trong cộng đồng (ngoại trừ người tạo bài)
+    try {
+      const otherMembers = await CommunityMember.find({
+        community: community._id,
+        user: { $ne: userId }
+      }).select('user');
+
+      for (const m of otherMembers) {
+        await createAndEmitNotification(io, {
+          recipient: m.user,
+          sender: userId,
+          type: 'community_post',
+          targetId: newPost._id
+        });
+      }
+    } catch (notifError) {
+      console.error('Error creating community post notifications:', notifError);
     }
 
     res.status(201).json({

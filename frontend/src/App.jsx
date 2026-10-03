@@ -20,6 +20,8 @@ import PostManagement from './components/admin/PostManagement.jsx';
 import PhotoModal from './components/PhotoModal.jsx';
 import PhotoPage from './components/PhotoPage.jsx';
 import PostDetailModal from './components/PostDetailModal.jsx';
+import CommunityList from './components/community/CommunityList.jsx';
+import CommunityDetail from './components/community/CommunityDetail.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 import './App.css';
 
@@ -44,6 +46,7 @@ function App() {
     isAdminRoute ||
     location.pathname.startsWith('/users/') ||
     location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/communities') ||
     isMessagesRoute ||
     (isPhotoRoute && !backgroundLocation);
 
@@ -85,6 +88,8 @@ function App() {
                 <Route path="/posts" element={<PostList />} />
                 <Route path="/posts/:postId" element={<PostDetailModal />} />
                 <Route path="/photo/:postId" element={<PhotoPage />} />
+                <Route path="/communities" element={<CommunityList />} />
+                <Route path="/communities/:communityId" element={<CommunityDetail />} />
                 <Route
                   path="/profile"
                   element={

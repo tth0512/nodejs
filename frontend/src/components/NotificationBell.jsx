@@ -1,6 +1,6 @@
 // frontend/src/components/NotificationBell.jsx
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FiBell, FiX, FiCheck, FiUserPlus, FiUserCheck, FiClock, FiHeart, FiMessageSquare, FiCornerDownRight } from 'react-icons/fi';
+import { FiBell, FiX, FiCheck, FiUserPlus, FiUserCheck, FiClock, FiHeart, FiMessageSquare, FiCornerDownRight, FiCompass } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/utils/useAuth.js';
@@ -17,6 +17,7 @@ const TYPE_CONFIG = {
   post_like: { icon: FiHeart, label: 'đã thích bài viết của bạn.', color: '#F0394F' },
   post_comment: { icon: FiMessageSquare, label: 'đã bình luận về bài viết của bạn.', color: '#F0394F' },
   comment_reply: { icon: FiCornerDownRight, label: 'đã trả lời bình luận của bạn.', color: '#0284c7' },
+  community_post: { icon: FiCompass, label: 'đã đăng bài viết mới trong cộng đồng.', color: '#00a854' },
 };
 
 function NotificationBell() {
@@ -96,7 +97,7 @@ function NotificationBell() {
       } catch { /* silent */ }
     }
     setOpen(false);
-    if (['post_like', 'post_comment', 'comment_reply'].includes(notif.type)) {
+    if (['post_like', 'post_comment', 'comment_reply', 'community_post'].includes(notif.type)) {
       navigate('/posts');
     } else if (notif.sender?._id) {
       navigate(`/users/${notif.sender._id}`);
