@@ -34,8 +34,16 @@ router.post('/:communityId/join', protect, joinCommunity);
 // 6. POST /api/communities/:communityId/leave - Rời khỏi cộng đồng
 router.post('/:communityId/leave', protect, leaveCommunity);
 
-// 7. POST /api/communities/:communityId/posts - Đăng bài viết vào cộng đồng
-router.post('/:communityId/posts', protect, uploadCloud.single('image'), createCommunityPost);
+// 7. POST /api/communities/:communityId/posts - Đăng bài viết vào cộng đồng (hỗ trợ nhiều ảnh)
+router.post(
+  '/:communityId/posts',
+  protect,
+  uploadCloud.fields([
+    { name: 'images', maxCount: 10 },
+    { name: 'image', maxCount: 10 }
+  ]),
+  createCommunityPost
+);
 
 // 8. GET /api/communities/:communityId - Xem chi tiết cộng đồng & bài viết
 router.get('/:communityId', optionalAuth, getCommunityById);

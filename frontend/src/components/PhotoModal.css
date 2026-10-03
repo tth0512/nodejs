@@ -70,11 +70,112 @@
 
 .photo-stage-image {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100% - 70px);
   object-fit: contain;
   border-radius: 6px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
   transition: transform 0.25s ease;
+}
+
+/* ── Navigation arrows (Prev / Next) ── */
+.photo-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(30, 30, 30, 0.85);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.photo-nav-btn:hover {
+  background: rgba(60, 60, 60, 0.95);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.photo-nav-prev {
+  left: 20px;
+}
+
+.photo-nav-next {
+  right: 20px;
+}
+
+/* Counter badge (e.g. 2 / 5) */
+.photo-counter-badge {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 20;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(20, 20, 20, 0.85);
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+}
+
+/* Thumbnail strip at bottom of stage */
+.photo-thumbs-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 85%;
+  overflow-x: auto;
+  padding: 6px 10px;
+  background: rgba(15, 15, 15, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  scrollbar-width: none;
+}
+
+.photo-thumbs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-thumb-item {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  opacity: 0.55;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.photo-thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-thumb-item:hover {
+  opacity: 0.88;
+}
+
+.photo-thumb-item.active {
+  opacity: 1;
+  border-color: #F0394F;
+  transform: scale(1.08);
 }
 
 /* ── Right Column: Sidebar (38% - 42%) ── */

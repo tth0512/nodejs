@@ -1,7 +1,7 @@
 // frontend/src/components/PhotoPage.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiClock } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { getPostById } from '../api/postApi.js';
@@ -19,6 +19,12 @@ export default function PhotoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Normalize images array
+  const images = Array.isArray(post?.imageUrl)
+    ? post.imageUrl.filter(Boolean)
+    : (post?.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim() ? [post.imageUrl.trim()] : []);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,6 +50,28 @@ export default function PhotoPage() {
     return () => { isMounted = false; };
   }, [postId]);
 
+  const handlePrev = useCallback(() => {
+    if (images.length <= 1) return;
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  }, [images.length]);
+
+  const handleNext = useCallback(() => {
+    if (images.length <= 1) return;
+    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  }, [images.length]);
+
+  // Arrow key navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (images.length > 1) {
+        if (e.key === 'ArrowLeft') handlePrev();
+        if (e.key === 'ArrowRight') handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrev, handleNext, images.length]);
+
   const author = (post?.authorId && typeof post?.authorId === 'object')
     ? post.authorId
     : (post?.author || {});
@@ -65,6 +93,8 @@ export default function PhotoPage() {
     if (isOwnPost) navigate('/profile');
     else if (authorId) navigate(`/users/${authorId}`);
   };
+
+  const currentImageSrc = images[currentIndex] || images[0];
 
   if (loading) {
     return (
@@ -103,17 +133,63 @@ export default function PhotoPage() {
           <FiArrowLeft /> Về bảng tin
         </button>
 
-        {post.imageUrl ? (
+        {/* Counter badge */}
+        {images.length > 1 && (
+          <div className="photo-page-counter-badge">
+            {currentIndex + 1} / {images.length}
+          </div>
+        )}
+
+        {/* Navigation arrows */}
+        {images.length > 1 && (
+          <>
+            <button
+              className="photo-page-nav-btn photo-page-nav-prev"
+              onClick={handlePrev}
+              title="Ảnh trước (←)"
+              aria-label="Ảnh trước"
+            >
+              <FiChevronLeft />
+            </button>
+            <button
+              className="photo-page-nav-btn photo-page-nav-next"
+              onClick={handleNext}
+              title="Ảnh tiếp theo (→)"
+              aria-label="Ảnh tiếp theo"
+            >
+              <FiChevronRight />
+            </button>
+          </>
+        )}
+
+        {currentImageSrc ? (
           <div className="photo-page-img-wrap">
             <img
-              src={post.imageUrl}
-              alt={post.title || 'Post image'}
+              key={currentImageSrc}
+              src={currentImageSrc}
+              alt={post.title || `Post image ${currentIndex + 1}`}
               className="photo-page-image"
             />
           </div>
         ) : (
           <div style={{ color: '#94a3b8', fontSize: '15px' }}>
             Bài viết không có hình ảnh đính kèm
+          </div>
+        )}
+
+        {/* Thumbnails bar */}
+        {images.length > 1 && (
+          <div className="photo-page-thumbs-bar">
+            {images.map((src, i) => (
+              <div
+                key={i}
+                className={`photo-page-thumb-item ${i === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(i)}
+                title={`Ảnh ${i + 1}`}
+              >
+                <img src={src} alt={`Thumbnail ${i + 1}`} />
+              </div>
+            ))}
           </div>
         )}
       </div>

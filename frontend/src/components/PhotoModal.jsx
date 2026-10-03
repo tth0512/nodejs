@@ -1,7 +1,7 @@
 // frontend/src/components/PhotoModal.jsx
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiX, FiArrowLeft, FiClock } from 'react-icons/fi';
+import { FiX, FiArrowLeft, FiClock, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { getPostById } from '../api/postApi.js';
@@ -24,14 +24,46 @@ export default function PhotoModal({ post: initialPostProp }) {
   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(true);
 
+  // Normalize images array
+  const images = Array.isArray(post?.imageUrl)
+    ? post.imageUrl.filter(Boolean)
+    : (post?.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim() ? [post.imageUrl.trim()] : []);
+
+  const [currentIndex, setCurrentIndex] = useState(
+    Math.max(0, Math.min(Math.max(0, images.length - 1), Number(location.state?.initialIndex) || 0))
+  );
+
+  // Sync index if location.state changes
+  useEffect(() => {
+    if (location.state?.initialIndex !== undefined) {
+      setCurrentIndex(Math.max(0, Math.min(Math.max(0, images.length - 1), Number(location.state.initialIndex) || 0)));
+    }
+  }, [location.state?.initialIndex, images.length]);
+
   // Close handler: navigate back to feed without page reload
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((e) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
     if (location.state?.backgroundLocation) {
-      navigate(-1);
+      navigate(location.state.backgroundLocation);
     } else {
       navigate('/posts');
     }
   }, [location.state, navigate]);
+
+  // Navigate images
+  const handlePrev = useCallback((e) => {
+    if (e) e.stopPropagation();
+    if (images.length <= 1) return;
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  }, [images.length]);
+
+  const handleNext = useCallback((e) => {
+    if (e) e.stopPropagation();
+    if (images.length <= 1) return;
+    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  }, [images.length]);
 
   // Lock body scroll while modal is mounted
   useEffect(() => {
@@ -41,14 +73,18 @@ export default function PhotoModal({ post: initialPostProp }) {
     };
   }, []);
 
-  // Escape key handler
+  // Keyboard navigation: Escape to close, ArrowLeft / ArrowRight to switch photo
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') handleClose();
+      if (images.length > 1) {
+        if (e.key === 'ArrowLeft') handlePrev();
+        if (e.key === 'ArrowRight') handleNext();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleClose]);
+  }, [handleClose, handlePrev, handleNext, images.length]);
 
   // Fetch post details if not provided or to ensure fresh data
   useEffect(() => {
@@ -96,37 +132,79 @@ export default function PhotoModal({ post: initialPostProp }) {
     else if (authorId) navigate(`/users/${authorId}`);
   };
 
+  const currentImageSrc = images[currentIndex] || images[0];
+
   return (
-    <div className="photo-theater-overlay" onClick={handleClose}>
+    <div
+      className="photo-theater-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose(e);
+        }
+      }}
+    >
       {/* ── Left Column: Media Stage (Image view) ── */}
       <div
         className="photo-stage"
         onClick={(e) => {
-          // If clicked directly on the stage background (outside the image), close modal
+          // If clicked directly on stage background, close modal
           if (e.target === e.currentTarget || e.target.classList.contains('photo-stage-img-wrap')) {
-            handleClose();
+            handleClose(e);
           }
         }}
       >
         {/* Floating Back/Close button */}
         <button
           className="photo-stage-btn"
-          onClick={handleClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClose(e);
+          }}
           title="Đóng (Esc)"
           aria-label="Đóng"
         >
           <FiArrowLeft />
         </button>
 
+        {/* Counter badge */}
+        {images.length > 1 && (
+          <div className="photo-counter-badge">
+            {currentIndex + 1} / {images.length}
+          </div>
+        )}
+
+        {/* Prev / Next buttons */}
+        {images.length > 1 && (
+          <>
+            <button
+              className="photo-nav-btn photo-nav-prev"
+              onClick={handlePrev}
+              title="Ảnh trước (←)"
+              aria-label="Ảnh trước"
+            >
+              <FiChevronLeft />
+            </button>
+            <button
+              className="photo-nav-btn photo-nav-next"
+              onClick={handleNext}
+              title="Ảnh tiếp theo (→)"
+              aria-label="Ảnh tiếp theo"
+            >
+              <FiChevronRight />
+            </button>
+          </>
+        )}
+
         {loading && !post && (
           <div className="photo-spinner" />
         )}
 
-        {post?.imageUrl ? (
+        {currentImageSrc ? (
           <div className="photo-stage-img-wrap">
             <img
-              src={post.imageUrl}
-              alt={post.title || 'Post image'}
+              key={currentImageSrc}
+              src={currentImageSrc}
+              alt={post.title || `Photo ${currentIndex + 1}`}
               className="photo-stage-image"
               onClick={(e) => e.stopPropagation()}
             />
@@ -137,6 +215,22 @@ export default function PhotoModal({ post: initialPostProp }) {
               Bài viết không có ảnh đính kèm
             </div>
           )
+        )}
+
+        {/* Thumbnails bar */}
+        {images.length > 1 && (
+          <div className="photo-thumbs-bar" onClick={(e) => e.stopPropagation()}>
+            {images.map((src, i) => (
+              <div
+                key={i}
+                className={`photo-thumb-item ${i === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(i)}
+                title={`Ảnh ${i + 1}`}
+              >
+                <img src={src} alt={`Thumbnail ${i + 1}`} />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

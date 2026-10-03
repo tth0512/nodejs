@@ -2,6 +2,61 @@
 import Post from '../models/Post.js';
 import Like from '../models/Like.js';
 
+// Helper: Đảm bảo imageUrl luôn là mảng cho cả bài viết cũ và mới
+export const ensureArrayImageUrl = (post) => {
+  if (!post) return post;
+  if (!post.imageUrl) return { ...post, imageUrl: [] };
+  if (Array.isArray(post.imageUrl)) return post;
+  if (typeof post.imageUrl === 'string') {
+    return { ...post, imageUrl: post.imageUrl.trim() ? [post.imageUrl.trim()] : [] };
+  }
+  return { ...post, imageUrl: [] };
+};
+
+// Helper: Trích xuất danh sách URL ảnh từ request (hỗ trợ Multer uploadCloud và URL / base64)
+export const extractImageUrls = (req) => {
+  let urls = [];
+
+  // 1. Từ Multer uploadCloud (req.files hoặc req.file)
+  if (req.files) {
+    if (Array.isArray(req.files)) {
+      urls = urls.concat(req.files.map(f => f.path).filter(Boolean));
+    } else if (typeof req.files === 'object') {
+      Object.values(req.files).forEach((arr) => {
+        if (Array.isArray(arr)) {
+          urls = urls.concat(arr.map(f => f.path).filter(Boolean));
+        }
+      });
+    }
+  }
+  if (req.file && req.file.path) {
+    urls.push(req.file.path);
+  }
+
+  // 2. Từ req.body (hỗ trợ imageUrl, imageUrls, images)
+  const rawBodyImages = req.body.imageUrl ?? req.body.imageUrls ?? req.body.images;
+  if (rawBodyImages) {
+    if (Array.isArray(rawBodyImages)) {
+      urls = urls.concat(rawBodyImages.filter(Boolean));
+    } else if (typeof rawBodyImages === 'string') {
+      try {
+        const parsed = JSON.parse(rawBodyImages);
+        if (Array.isArray(parsed)) {
+          urls = urls.concat(parsed.filter(Boolean));
+        } else if (typeof parsed === 'string' && parsed.trim()) {
+          urls.push(parsed.trim());
+        } else {
+          urls.push(rawBodyImages.trim());
+        }
+      } catch {
+        if (rawBodyImages.trim()) urls.push(rawBodyImages.trim());
+      }
+    }
+  }
+
+  return [...new Set(urls.filter(Boolean))];
+};
+
 // 1. Lấy danh sách bài viết (Public / Optional Auth)
 export const getPosts = async (req, res) => {
   try {
@@ -24,10 +79,13 @@ export const getPosts = async (req, res) => {
       likedPostIds = new Set(userLikes.map(l => l.targetId.toString()));
     }
 
-    const postsWithLiked = posts.map(post => ({
-      ...post,
-      isLiked: likedPostIds.has(post._id.toString())
-    }));
+    const postsWithLiked = posts.map(post => {
+      const p = ensureArrayImageUrl(post);
+      return {
+        ...p,
+        isLiked: likedPostIds.has(p._id.toString())
+      };
+    });
 
     res.status(200).json({ success: true, data: postsWithLiked });
   } catch (error) {
@@ -53,7 +111,8 @@ export const getPostById = async (req, res) => {
       isLiked = Boolean(like);
     }
 
-    res.status(200).json({ success: true, data: { ...post, isLiked } });
+    const p = ensureArrayImageUrl(post);
+    res.status(200).json({ success: true, data: { ...p, isLiked } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -62,7 +121,7 @@ export const getPostById = async (req, res) => {
 // 3. Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
-    const { topic, content, imageUrl, communityId, privacy } = req.body;
+    const { topic, content, communityId, privacy } = req.body;
     const authorId = req.user?.userId || req.user?.id;
 
     if (!authorId) {
@@ -73,15 +132,15 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng điền nội dung bài viết!' });
     }
 
-    // Support both Cloudinary uploaded file and direct URL
-    const finalImageUrl = (req.file && req.file.path) ? req.file.path : (imageUrl || '');
+    // Support both Cloudinary uploaded files and direct URLs / base64 array
+    const finalImageUrls = extractImageUrls(req);
 
     const newPost = await Post.create({
       authorId,
       communityId: communityId || null,
       topic: topic || '',
       content,
-      imageUrl: finalImageUrl,
+      imageUrl: finalImageUrls,
       privacy: privacy || 'public'
     });
 
@@ -89,20 +148,22 @@ export const createPost = async (req, res) => {
       .populate('authorId', 'username email avatarUrl fullName')
       .populate('communityId', 'name avatar coverImage privacy');
 
+    const formattedPost = ensureArrayImageUrl(populatedPost.toObject ? populatedPost.toObject() : populatedPost);
+
     // Emit Socket.IO event to broadcast new post to all connected users
     const io = req.app.get('io');
     if (io) {
-      io.emit('newPost', { post: populatedPost });
+      io.emit('newPost', { post: formattedPost });
     }
 
-    res.status(201).json({ success: true, data: populatedPost });
+    res.status(201).json({ success: true, data: formattedPost });
   } catch (error) {
     console.error('Error in createPost:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 3. Sửa bài viết (Chỉ tác giả)
+// 4. Sửa bài viết (Chỉ tác giả)
 export const updatePost = async (req, res) => {
   try {
     const userId = (req.user?.userId || req.user?.id)?.toString();
@@ -119,24 +180,31 @@ export const updatePost = async (req, res) => {
       });
     }
 
-    const { topic, content, imageUrl, privacy } = req.body;
+    const { topic, content, privacy } = req.body;
     if (topic !== undefined) post.topic = topic;
     if (content !== undefined) post.content = content;
-    if (imageUrl !== undefined) post.imageUrl = imageUrl;
     if (privacy !== undefined) post.privacy = privacy;
+
+    // Cập nhật ảnh nếu có truyền mới hoặc upload mới
+    const uploadedUrls = extractImageUrls(req);
+    if (req.body.imageUrl !== undefined || req.body.imageUrls !== undefined || req.body.images !== undefined || uploadedUrls.length > 0) {
+      post.imageUrl = uploadedUrls;
+    }
 
     const updatedPost = await post.save();
 
     const populatedPost = await Post.findById(updatedPost._id)
       .populate('authorId', 'username email avatarUrl');
 
+    const formattedPost = ensureArrayImageUrl(populatedPost.toObject ? populatedPost.toObject() : populatedPost);
+
     // Emit Socket.IO event
     const io = req.app.get('io');
     if (io) {
-      io.emit('postUpdated', { post: populatedPost });
+      io.emit('postUpdated', { post: formattedPost });
     }
 
-    res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: populatedPost });
+    res.status(200).json({ success: true, message: 'Cập nhật thành công!', data: formattedPost });
   } catch (error) {
     console.error('Error in updatePost:', error);
     res.status(500).json({ success: false, message: error.message });

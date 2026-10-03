@@ -11,7 +11,7 @@ function EditPost() {
   const [post, setPost] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
@@ -23,7 +23,10 @@ function EditPost() {
         setPost(res.data.data);
         setTitle(res.data.data.title || '');
         setContent(res.data.data.content || '');
-        setImageUrl(res.data.data.imageUrl || '');
+        const imgs = Array.isArray(res.data.data.imageUrl)
+          ? res.data.data.imageUrl.filter(Boolean)
+          : (res.data.data.imageUrl ? [res.data.data.imageUrl] : []);
+        setImageUrls(imgs);
       } catch (error) {
         toast.error('Không thể tải bài viết');
         navigate('/posts');
@@ -36,14 +39,23 @@ function EditPost() {
   }, [postId, navigate]);
 
   const handleImageChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
+    const availableSlots = 10 - imageUrls.length;
+    const filesToRead = files.slice(0, Math.max(0, availableSlots));
+
+    Promise.all(
+      filesToRead.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      }))
+    ).then((newUrls) => {
+      setImageUrls((prev) => [...prev, ...newUrls].slice(0, 10));
+    });
+
+    event.target.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -54,7 +66,7 @@ function EditPost() {
       await axiosClient.put(`/posts/${postId}`, {
         title,
         content,
-        imageUrl
+        imageUrl: imageUrls
       });
       toast.success('Cập nhật bài viết thành công!');
       navigate('/posts');
@@ -106,6 +118,7 @@ function EditPost() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             hidden
             onChange={handleImageChange}
           />
@@ -116,22 +129,33 @@ function EditPost() {
               className="upload-image-btn"
               onClick={() => fileInputRef.current?.click()}
             >
-              Thay đổi ảnh
+              {imageUrls.length > 0 ? `Thêm ảnh (${imageUrls.length}/10)` : 'Thêm ảnh'}
             </button>
-            {imageUrl && (
+            {imageUrls.length > 0 && (
               <button 
                 type="button"
                 className="remove-image-btn"
-                onClick={() => setImageUrl('')}
+                onClick={() => setImageUrls([])}
               >
-                Xóa ảnh
+                Xóa tất cả ảnh
               </button>
             )}
           </div>
 
-          {imageUrl && (
-            <div className="preview-container">
-              <img src={imageUrl} alt="Preview" className="preview-image" />
+          {imageUrls.length > 0 && (
+            <div className="multi-preview-strip" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '6px 0' }}>
+              {imageUrls.map((url, idx) => (
+                <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden' }}>
+                  <img src={url} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button
+                    type="button"
+                    onClick={() => setImageUrls((prev) => prev.filter((_, i) => i !== idx))}
+                    style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 

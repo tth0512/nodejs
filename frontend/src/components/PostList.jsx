@@ -9,30 +9,46 @@ import { useSocket } from '../context/SocketContext.jsx';
 import axiosClient from '../api/axiosClient.js';
 import PostActions from './PostActions.jsx';
 import CommentSection from './CommentSection.jsx';
+import PostImageGrid from './PostImageGrid.jsx';
 import './PostList.css';
 
 function CreatePostBox({ onPostCreated }) {
   const { currentUser } = useAuth();
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.warning('Ảnh tối đa 5MB. Vui lòng chọn hình nhỏ hơn.');
-      event.target.value = '';
-      return;
+    const validFiles = files.filter((f) => {
+      if (f.size > 5 * 1024 * 1024) {
+        toast.warning(`Ảnh "${f.name}" vượt quá 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (imageUrls.length + validFiles.length > 10) {
+      toast.warning('Tối đa 10 ảnh cho mỗi bài viết.');
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
+    const availableSlots = 10 - imageUrls.length;
+    const filesToRead = validFiles.slice(0, Math.max(0, availableSlots));
+
+    Promise.all(
+      filesToRead.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      }))
+    ).then((newUrls) => {
+      setImageUrls((prev) => [...prev, ...newUrls].slice(0, 10));
+    });
+
+    event.target.value = '';
   };
 
   const handleCreatePost = async () => {
@@ -46,14 +62,14 @@ function CreatePostBox({ onPostCreated }) {
       const res = await axiosClient.post('/posts', {
         title: newTitle,
         content: newContent,
-        imageUrl
+        imageUrl: imageUrls
       });
 
       onPostCreated(res.data.data);
 
       setNewTitle('');
       setNewContent('');
-      setImageUrl('');
+      setImageUrls([]);
       toast.success('Đăng bài thành công!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Lỗi khi đăng bài');
@@ -86,17 +102,23 @@ function CreatePostBox({ onPostCreated }) {
             onChange={(e) => setNewContent(e.target.value)}
           ></textarea>
 
-          {imageUrl && (
-            <div className="image-preview-container">
-              <img src={imageUrl} alt="Preview" className="image-preview" />
-              <button
-                type="button"
-                className="remove-image-btn"
-                onClick={() => setImageUrl('')}
-                aria-label="Remove image"
-              >
-                ×
-              </button>
+          {/* Multiple Image Previews */}
+          {imageUrls.length > 0 && (
+            <div className="multi-preview-strip">
+              {imageUrls.map((url, idx) => (
+                <div key={idx} className="preview-thumb-wrap">
+                  <img src={url} alt={`Preview ${idx + 1}`} className="preview-thumb" />
+                  <button
+                    type="button"
+                    className="remove-thumb-btn"
+                    onClick={() => setImageUrls((prev) => prev.filter((_, i) => i !== idx))}
+                    aria-label="Remove image"
+                    title="Xóa ảnh này"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -106,11 +128,12 @@ function CreatePostBox({ onPostCreated }) {
           id="post-image-upload"
           type="file"
           accept="image/*"
+          multiple
           style={{ display: 'none' }}
           onChange={handleImageChange}
         />
         <label htmlFor="post-image-upload" className="attach-btn" title="Tải ảnh lên">
-          <FiImage /> Ảnh/Video
+          <FiImage /> {imageUrls.length > 0 ? `Thêm ảnh (${imageUrls.length})` : 'Ảnh/Video'}
         </label>
         <button
           className="submit-post-btn"
@@ -152,7 +175,7 @@ function PostList({ refreshTrigger }) {
   const [editingPostId, setEditingPostId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
-  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageUrls, setEditImageUrls] = useState([]);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const editFileInputRef = useRef(null);
 
@@ -350,7 +373,10 @@ function PostList({ refreshTrigger }) {
     setEditingPostId(post._id);
     setEditTitle(post.title || '');
     setEditContent(post.content || '');
-    setEditImageUrl(post.imageUrl || '');
+    const imgs = Array.isArray(post.imageUrl)
+      ? post.imageUrl.filter(Boolean)
+      : (post.imageUrl ? [post.imageUrl] : []);
+    setEditImageUrls(imgs);
     setOpenMenuId(null);
   };
 
@@ -359,21 +385,36 @@ function PostList({ refreshTrigger }) {
     setEditingPostId(null);
     setEditTitle('');
     setEditContent('');
-    setEditImageUrl('');
+    setEditImageUrls([]);
   };
 
   // Handle image change in inline editor
   const handleEditImageChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.warning('Ảnh tối đa 5MB.');
-      event.target.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onloadend = () => setEditImageUrl(reader.result);
-    reader.readAsDataURL(file);
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const validFiles = files.filter((f) => {
+      if (f.size > 5 * 1024 * 1024) {
+        toast.warning(`Ảnh "${f.name}" tối đa 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    const availableSlots = 10 - editImageUrls.length;
+    const filesToRead = validFiles.slice(0, Math.max(0, availableSlots));
+
+    Promise.all(
+      filesToRead.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      }))
+    ).then((newUrls) => {
+      setEditImageUrls((prev) => [...prev, ...newUrls].slice(0, 10));
+    });
+
+    event.target.value = '';
   };
 
   // Submit inline edit
@@ -387,7 +428,7 @@ function PostList({ refreshTrigger }) {
       await axiosClient.put(`/posts/${postId}`, {
         title: editTitle,
         content: editContent,
-        imageUrl: editImageUrl
+        imageUrl: editImageUrls
       });
       toast.success('Cập nhật bài viết thành công!');
       // Close editor — socket event will update + move post to top
@@ -568,6 +609,7 @@ function PostList({ refreshTrigger }) {
                     ref={editFileInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     hidden
                     onChange={handleEditImageChange}
                   />
@@ -577,30 +619,35 @@ function PostList({ refreshTrigger }) {
                       className="attach-btn"
                       onClick={() => editFileInputRef.current?.click()}
                     >
-                      <FiImage /> {editImageUrl ? 'Thay ảnh' : 'Thêm ảnh'}
+                      <FiImage /> {editImageUrls.length > 0 ? `Thêm ảnh (${editImageUrls.length})` : 'Thêm ảnh'}
                     </button>
-                    {editImageUrl && (
+                    {editImageUrls.length > 0 && (
                       <button
                         type="button"
                         className="inline-edit-remove-img-btn"
-                        onClick={() => setEditImageUrl('')}
+                        onClick={() => setEditImageUrls([])}
                       >
-                        Xóa ảnh
+                        Xóa tất cả ảnh
                       </button>
                     )}
                   </div>
 
-                  {editImageUrl && (
-                    <div className="image-preview-container">
-                      <img src={editImageUrl} alt="Preview" className="image-preview" />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => setEditImageUrl('')}
-                        aria-label="Remove image"
-                      >
-                        ×
-                      </button>
+                  {editImageUrls.length > 0 && (
+                    <div className="multi-preview-strip">
+                      {editImageUrls.map((url, idx) => (
+                        <div key={idx} className="preview-thumb-wrap">
+                          <img src={url} alt={`Preview ${idx + 1}`} className="preview-thumb" />
+                          <button
+                            type="button"
+                            className="remove-thumb-btn"
+                            onClick={() => setEditImageUrls((prev) => prev.filter((_, i) => i !== idx))}
+                            aria-label="Remove image"
+                            title="Xóa ảnh này"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -630,19 +677,16 @@ function PostList({ refreshTrigger }) {
                   <div className="post-body">
                     {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
                     <p className="post-content">{post.content}</p>
-                    {post.imageUrl && (
-                      <div
-                        className="post-image-placeholder"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/photo/${post._id}`, {
-                            state: { backgroundLocation: location, post }
-                          });
-                        }}
-                      >
-                        <img src={post.imageUrl} alt="Post Cover" className="post-cover" />
-                      </div>
-                    )}
+                    <PostImageGrid
+                      images={post.imageUrl}
+                      alt={post.title || 'Post Cover'}
+                      onImageClick={(idx, e) => {
+                        e.stopPropagation();
+                        navigate(`/photo/${post._id}`, {
+                          state: { backgroundLocation: location, post, initialIndex: idx }
+                        });
+                      }}
+                    />
                   </div>
 
                   {/* 3. FOOTER: Các nút tương tác */}

@@ -4,6 +4,7 @@ import Community from '../models/Community.js';
 import CommunityMember from '../models/CommunityMember.js';
 import Post from '../models/Post.js';
 import Like from '../models/Like.js';
+import { extractImageUrls, ensureArrayImageUrl } from './postController.js';
 
 // 1. GET /api/communities/feed - Lấy toàn bộ bài viết từ các cộng đồng mà người dùng đã tham gia
 export const getCommunityFeed = async (req, res) => {
@@ -49,10 +50,13 @@ export const getCommunityFeed = async (req, res) => {
       likedPostIds = new Set(userLikes.map((l) => l.targetId.toString()));
     }
 
-    const postsWithLiked = posts.map((post) => ({
-      ...post,
-      isLiked: likedPostIds.has(post._id.toString())
-    }));
+    const postsWithLiked = posts.map((post) => {
+      const p = ensureArrayImageUrl(post);
+      return {
+        ...p,
+        isLiked: likedPostIds.has(p._id.toString())
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -490,14 +494,14 @@ export const createCommunityPost = async (req, res) => {
       });
     }
 
-    const finalImageUrl = (req.file && req.file.path) ? req.file.path : (imageUrl || '');
+    const finalImageUrls = extractImageUrls(req);
 
     const newPost = await Post.create({
       authorId: userId,
       communityId: community._id,
       topic: topic?.trim() || '',
       content: content.trim(),
-      imageUrl: finalImageUrl,
+      imageUrl: finalImageUrls,
       privacy: privacy || 'public',
       status: 'active'
     });
@@ -506,17 +510,19 @@ export const createCommunityPost = async (req, res) => {
       .populate('authorId', 'username fullName avatarUrl role')
       .populate('communityId', 'name avatar coverImage privacy');
 
+    const formattedPost = ensureArrayImageUrl(populatedPost.toObject ? populatedPost.toObject() : populatedPost);
+
     // Broadcast realtime qua Socket.IO
     const io = req.app.get('io');
     if (io) {
-      io.emit('newPost', { post: populatedPost });
-      io.to(`community_${communityId}`).emit('newCommunityPost', { post: populatedPost });
+      io.emit('newPost', { post: formattedPost });
+      io.to(`community_${communityId}`).emit('newCommunityPost', { post: formattedPost });
     }
 
     res.status(201).json({
       success: true,
       message: 'Đăng bài vào cộng đồng thành công!',
-      data: populatedPost
+      data: formattedPost
     });
   } catch (error) {
     console.error('Error in createCommunityPost:', error);

@@ -143,9 +143,18 @@ const PostManagement = () => {
                       : <span style={{ color: '#9ca3af' }}>—</span>}
                   </td>
                   <td>
-                    {p.imageUrl
-                      ? <img src={p.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, cursor: 'pointer' }} onClick={() => setSelectedPost(p)} />
-                      : <span style={{ color: '#9ca3af', fontSize: 12 }}>Không có</span>}
+                    {(() => {
+                      const imgs = Array.isArray(p.imageUrl) ? p.imageUrl.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
+                      if (!imgs.length) return <span style={{ color: '#9ca3af', fontSize: 12 }}>Không có</span>;
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} onClick={() => setSelectedPost(p)}>
+                          <img src={imgs[0]} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                          {imgs.length > 1 && (
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#F0394F' }}>+{imgs.length - 1}</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>
                     <span className={`a-badge ${p.status}`}>
@@ -214,12 +223,18 @@ const PostManagement = () => {
                 {selectedPost.content}
               </div>
 
-              {/* Image */}
-              {selectedPost.imageUrl && (
-                <div style={{ textAlign: 'center', marginBottom: 14 }}>
-                  <img src={selectedPost.imageUrl} alt="" style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 10, objectFit: 'contain' }} />
-                </div>
-              )}
+              {/* Images */}
+              {(() => {
+                const imgs = Array.isArray(selectedPost.imageUrl) ? selectedPost.imageUrl.filter(Boolean) : (selectedPost.imageUrl ? [selectedPost.imageUrl] : []);
+                if (!imgs.length) return null;
+                return (
+                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '6px 0', marginBottom: 14 }}>
+                    {imgs.map((src, i) => (
+                      <img key={i} src={src} alt="" style={{ height: 160, borderRadius: 8, objectFit: 'contain', background: '#000' }} />
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Meta */}
               <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', gap: 16 }}>

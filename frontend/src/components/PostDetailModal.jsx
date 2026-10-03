@@ -11,6 +11,7 @@ import { togglePostLike, getPostById } from '../api/postApi.js';
 import { useSocket } from '../context/SocketContext.jsx';
 import { useAuth } from '../context/utils/useAuth.js';
 import CommentSection from './CommentSection.jsx';
+import PostImageGrid from './PostImageGrid.jsx';
 import './PostDetailModal.css';
 
 export default function PostDetailModal({ post: initialPostProp, onClose: onCloseProp }) {
@@ -33,11 +34,14 @@ export default function PostDetailModal({ post: initialPostProp, onClose: onClos
   const [isLiking, setIsLiking]           = useState(false);
   const [showComments, setShowComments]   = useState(true);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((e) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
     if (onCloseProp) {
       onCloseProp();
     } else if (location.state?.backgroundLocation) {
-      navigate(-1);
+      navigate(location.state.backgroundLocation);
     } else {
       navigate('/posts');
     }
@@ -154,13 +158,18 @@ export default function PostDetailModal({ post: initialPostProp, onClose: onClos
     }
   };
 
+  const images = Array.isArray(post?.imageUrl)
+    ? post.imageUrl.filter(Boolean)
+    : (post?.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim() ? [post.imageUrl.trim()] : []);
+
   // ── Navigate to theater (photo) mode ─────────────────────────────────────
-  const goToPhotoView = (e) => {
-    if (e) e.stopPropagation();
+  const goToPhotoView = (index = 0, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     navigate(`/photo/${post._id}`, {
       state: {
         backgroundLocation: location.state?.backgroundLocation || { pathname: '/posts' },
-        post
+        post,
+        initialIndex: typeof index === 'number' ? index : 0
       }
     });
   };
@@ -258,13 +267,13 @@ export default function PostDetailModal({ post: initialPostProp, onClose: onClos
             <p className="pdm-post-text">{post.content}</p>
           </div>
 
-          {/* Image — only if exists */}
-          {post.imageUrl && (
-            <div className="pdm-image-wrap" onClick={goToPhotoView}>
-              <img
-                src={post.imageUrl}
-                alt="Post image"
-                className="pdm-image"
+          {/* Images — only if exists */}
+          {images.length > 0 && (
+            <div style={{ padding: '0 16px', marginBottom: '12px' }}>
+              <PostImageGrid
+                images={images}
+                onImageClick={(idx, e) => goToPhotoView(idx, e)}
+                alt={post.title || 'Post image'}
               />
             </div>
           )}
@@ -318,15 +327,15 @@ export default function PostDetailModal({ post: initialPostProp, onClose: onClos
             </button>
 
             {/* Open photo view */}
-            {post.imageUrl && (
+            {images.length > 0 && (
               <button
                 className="pdm-action-btn"
-                onClick={goToPhotoView}
+                onClick={(e) => goToPhotoView(0, e)}
                 aria-label="Xem ảnh đầy đủ"
                 title="Xem ảnh đầy đủ (Theater Mode)"
               >
                 <FiExternalLink size={15} />
-                <span>Xem ảnh</span>
+                <span>Xem ảnh {images.length > 1 ? `(${images.length})` : ''}</span>
               </button>
             )}
           </div>

@@ -24,8 +24,8 @@ const postSchema = new mongoose.Schema({
     required: true
   },
   imageUrl: {
-    type: String,
-    default: ''
+    type: [String],
+    default: []
   },
   privacy: {
     type: String,

@@ -1,6 +1,5 @@
-// src/components/ProfilePage.jsx
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   FiArrowLeft,
   FiEdit,
@@ -27,6 +26,7 @@ import { useAuth } from '../context/utils/useAuth.js';
 import FollowButton from './FollowButton.jsx';
 import FollowList from './FollowList.jsx';
 import FollowRequests from './FollowRequests.jsx';
+import PostImageGrid from './PostImageGrid.jsx';
 import './ProfilePage.css';
 import './PostList.css';
 
@@ -44,6 +44,7 @@ const PRIVACY_LABELS = {
 function ProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useAuth();
 
   const isOwnProfile = Boolean(
@@ -548,11 +549,16 @@ function ProfilePage() {
                             </h3>
                           )}
                           <p className="post-content">{post.content}</p>
-                          {post.imageUrl && (
-                            <div className="post-image-placeholder">
-                              <img src={post.imageUrl} alt="Post" className="post-cover" />
-                            </div>
-                          )}
+                          <PostImageGrid
+                            images={post.imageUrl}
+                            alt={post.title || 'Post'}
+                            onImageClick={(idx, e) => {
+                              e.stopPropagation();
+                              navigate(`/photo/${post._id}`, {
+                                state: { backgroundLocation: location, post, initialIndex: idx }
+                              });
+                            }}
+                          />
                         </div>
 
                         {/* Footer */}
