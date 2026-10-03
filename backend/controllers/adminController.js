@@ -126,9 +126,9 @@ export const updateUserRole = async (req, res) => {
     const { role } = req.body;
     const currentAdminId = (req.user?.userId || req.user?.id)?.toString();
 
-    const allowedRoles = ['member', 'group_admin', 'moderator', 'system_admin'];
+    const allowedRoles = ['member', 'system_admin'];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ' });
+      return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ (chỉ chấp nhận member hoặc system_admin)' });
     }
     if (id === currentAdminId && role !== 'system_admin') {
       return res.status(400).json({ success: false, message: 'Không thể tự hạ quyền của chính mình!' });

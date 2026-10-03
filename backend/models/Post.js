@@ -7,11 +7,12 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // null = posted on personal profile, ObjectId = posted in a group
-  groupId: {
+  // null = posted on personal profile, ObjectId = posted in a community
+  communityId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group',
-    default: null
+    ref: 'Community',
+    default: null,
+    index: true
   },
   // Optional topic/tag for the post
   topic: {

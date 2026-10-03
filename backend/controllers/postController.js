@@ -38,7 +38,7 @@ export const getPosts = async (req, res) => {
 // 2. Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
-    const { topic, content, imageUrl, groupId, privacy } = req.body;
+    const { topic, content, imageUrl, communityId, privacy } = req.body;
     const authorId = req.user?.userId || req.user?.id;
 
     if (!authorId) {
@@ -54,7 +54,7 @@ export const createPost = async (req, res) => {
 
     const newPost = await Post.create({
       authorId,
-      groupId: groupId || null,
+      communityId: communityId || null,
       topic: topic || '',
       content,
       imageUrl: finalImageUrl,
@@ -62,7 +62,8 @@ export const createPost = async (req, res) => {
     });
 
     const populatedPost = await Post.findById(newPost._id)
-      .populate('authorId', 'username email avatarUrl');
+      .populate('authorId', 'username email avatarUrl fullName')
+      .populate('communityId', 'name avatar coverImage privacy');
 
     // Emit Socket.IO event to broadcast new post to all connected users
     const io = req.app.get('io');

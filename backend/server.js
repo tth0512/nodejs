@@ -13,6 +13,7 @@ import messageRoutes from './routes/messageRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import likeRoutes from './routes/likeRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
+import communityRoutes from './routes/communityRoutes.js';
 import { setupSocket } from './socket/socketHandler.js';
 
 dotenv.config();
@@ -53,6 +54,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/posts', likeRoutes);
 app.use('/api/posts', commentRoutes);
+app.use('/api/communities', communityRoutes);
 
 // Setup Socket.IO Gateway
 setupSocket(io);
