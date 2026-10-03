@@ -17,6 +17,9 @@ import Messages from './components/Messages.jsx';
 import AdminOverview from './components/admin/AdminOverview.jsx';
 import UserManagement from './components/admin/UserManagement.jsx';
 import PostManagement from './components/admin/PostManagement.jsx';
+import PhotoModal from './components/PhotoModal.jsx';
+import PhotoPage from './components/PhotoPage.jsx';
+import PostDetailModal from './components/PostDetailModal.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 import './App.css';
 
@@ -25,6 +28,9 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Background location pattern for modals
+  const backgroundLocation = location.state?.backgroundLocation;
+
   const isAdmin = currentUser?.role === 'system_admin';
 
   // Admin routes mở rộng feed full (không có right panel)
@@ -32,11 +38,14 @@ function App() {
 
   const isMessagesRoute = location.pathname.startsWith('/messages');
 
+  const isPhotoRoute = /^\/photo\/[^/]+$/.test(location.pathname);
+
   const isFullWidthRoute =
     isAdminRoute ||
     location.pathname.startsWith('/users/') ||
     location.pathname.startsWith('/profile') ||
-    isMessagesRoute;
+    isMessagesRoute ||
+    (isPhotoRoute && !backgroundLocation);
 
   const handleLogout = async () => {
     try {
@@ -70,10 +79,12 @@ function App() {
 
           <main className={`content-area ${isFullWidthRoute ? 'content-area--full' : ''} ${isMessagesRoute ? 'content-area--messages' : ''}`}>
             <div className={`feed-container ${isFullWidthRoute ? 'feed-container--full' : ''} ${isMessagesRoute ? 'feed-container--messages' : ''}`}>
-              <Routes>
+              <Routes location={backgroundLocation || location}>
                 {/* ─── User routes ─── */}
                 <Route path="/" element={<Navigate to="/posts" />} />
                 <Route path="/posts" element={<PostList />} />
+                <Route path="/posts/:postId" element={<PostDetailModal />} />
+                <Route path="/photo/:postId" element={<PhotoPage />} />
                 <Route
                   path="/profile"
                   element={
@@ -100,7 +111,7 @@ function App() {
               </Routes>
             </div>
 
-            {/* CỘT PHẢI — ẩn trên trang admin, profile, messages */}
+            {/* CỘT PHẢI — ẩn trên trang admin, profile, messages, photo */}
             {!isFullWidthRoute && (
               <div className="right-panel">
                 <div className="widget">
@@ -116,6 +127,14 @@ function App() {
           </main>
         </div>
       </div>
+
+      {/* ── Modal Routes (chỉ render khi có backgroundLocation) ── */}
+      {backgroundLocation && (
+        <Routes>
+          <Route path="/posts/:postId" element={<PostDetailModal />} />
+          <Route path="/photo/:postId" element={<PhotoModal />} />
+        </Routes>
+      )}
     </SocketProvider>
   );
 }

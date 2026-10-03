@@ -1,5 +1,5 @@
 import express from 'express';
-import { getPosts, createPost, updatePost, deletePost } from '../controllers/postController.js';
+import { getPosts, getPostById, createPost, updatePost, deletePost } from '../controllers/postController.js';
 import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 import { uploadCloud } from '../utlis/cloudinaryConfig.js';
 
@@ -12,6 +12,9 @@ router.get('/', optionalAuth, getPosts);
 // router.post('/', protect, createPost);
 
 router.post('/', protect, uploadCloud.single('image'), createPost);
+
+// Route GET: Lấy chi tiết một bài viết theo ID
+router.get('/:postId', optionalAuth, getPostById);
 
 // Route PUT: Sửa bài viết (Bắt buộc đăng nhập)
 router.put('/:id', protect, updatePost);

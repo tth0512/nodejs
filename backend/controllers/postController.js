@@ -35,7 +35,31 @@ export const getPosts = async (req, res) => {
   }
 };
 
-// 2. Tạo bài viết mới
+// 2. Lấy chi tiết một bài viết (Public / Optional Auth)
+export const getPostById = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId)
+      .populate('authorId', 'username email avatarUrl')
+      .lean();
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết!' });
+    }
+
+    const userId = (req.user?.userId || req.user?.id)?.toString();
+    let isLiked = false;
+    if (userId) {
+      const like = await Like.findOne({ userId, targetId: post._id, targetType: 'Post' });
+      isLiked = Boolean(like);
+    }
+
+    res.status(200).json({ success: true, data: { ...post, isLiked } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 3. Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
     const { topic, content, imageUrl, communityId, privacy } = req.body;

@@ -1,6 +1,5 @@
-// src/components/PostList.jsx
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiTrash2, FiClock, FiHeart, FiMessageSquare, FiImage, FiMoreVertical, FiEdit2, FiX, FiCheck } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -129,6 +128,7 @@ function PostList({ refreshTrigger }) {
   const { currentUser } = useAuth();
   const socket = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [postState, setPostState] = useState({
     data: [],
     loading: true,
@@ -441,7 +441,17 @@ function PostList({ refreshTrigger }) {
           const isEditing = editingPostId === post._id;
 
           return (
-            <div key={post._id} className={`post-card${isEditing ? ' post-card--editing' : ''}`}>
+            <div
+              key={post._id}
+              className={`post-card${isEditing ? ' post-card--editing' : ''}`}
+              onClick={() => {
+                if (!isEditing) {
+                  navigate(`/posts/${post._id}`, {
+                    state: { backgroundLocation: location, post }
+                  });
+                }
+              }}
+            >
 
               {/* 1. HEADER: Thông tin tác giả và nút Dropdown Menu */}
               <div className="post-header">
@@ -450,7 +460,8 @@ function PostList({ refreshTrigger }) {
                     className="author-avatar"
                     style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}
                     title={`Xem hồ sơ của ${author?.username || 'người dùng'}`}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (isOwnPost) navigate('/profile');
                       else if (authorId) navigate(`/users/${authorId}`);
                     }}
@@ -469,7 +480,8 @@ function PostList({ refreshTrigger }) {
                       <span
                         className="author-name"
                         style={{ cursor: 'pointer' }}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (isOwnPost) navigate('/profile');
                           else if (authorId) navigate(`/users/${authorId}`);
                         }}
@@ -500,7 +512,7 @@ function PostList({ refreshTrigger }) {
 
                 {/* Dropdown Menu Button — hidden while editing */}
                 {canDelete && !isEditing && (
-                  <div className="post-menu-container">
+                  <div className="post-menu-container" onClick={(e) => e.stopPropagation()}>
                     <button
                       className="post-menu-btn"
                       onClick={() => setOpenMenuId(openMenuId === post._id ? null : post._id)}
@@ -535,7 +547,7 @@ function PostList({ refreshTrigger }) {
 
               {/* INLINE EDIT FORM */}
               {isEditing ? (
-                <div className="inline-edit-form">
+                <div className="inline-edit-form" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="text"
                     className="inline-edit-title"
@@ -619,27 +631,39 @@ function PostList({ refreshTrigger }) {
                     {post.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#1a1a1a' }}>{post.title}</h3>}
                     <p className="post-content">{post.content}</p>
                     {post.imageUrl && (
-                      <div className="post-image-placeholder">
+                      <div
+                        className="post-image-placeholder"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/photo/${post._id}`, {
+                            state: { backgroundLocation: location, post }
+                          });
+                        }}
+                      >
                         <img src={post.imageUrl} alt="Post Cover" className="post-cover" />
                       </div>
                     )}
                   </div>
 
                   {/* 3. FOOTER: Các nút tương tác */}
-                  <PostActions
-                    post={post}
-                    currentUser={currentUser}
-                    isOpenComment={openCommentPostIds.has(post._id)}
-                    onCommentClick={() => toggleComments(post._id)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <PostActions
+                      post={post}
+                      currentUser={currentUser}
+                      isOpenComment={openCommentPostIds.has(post._id)}
+                      onCommentClick={() => toggleComments(post._id)}
+                    />
+                  </div>
 
                   {/* 4. COMMENTS: Khu vực hiển thị bình luận */}
                   {openCommentPostIds.has(post._id) && (
-                    <CommentSection
-                      postId={post._id}
-                      postAuthorId={post.authorId || post.author}
-                      currentUser={currentUser}
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <CommentSection
+                        postId={post._id}
+                        postAuthorId={post.authorId || post.author}
+                        currentUser={currentUser}
+                      />
+                    </div>
                   )}
                 </>
               )}

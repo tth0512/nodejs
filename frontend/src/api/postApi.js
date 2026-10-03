@@ -7,6 +7,11 @@ export const togglePostLike = async (postId) => {
   return res.data;
 };
 
+export const getPostById = async (postId) => {
+  const res = await axiosClient.get(`/posts/${postId}`);
+  return res.data;
+};
+
 export const toggleCommentLike = async (postId, commentId) => {
   const res = await axiosClient.post(`/posts/${postId}/comments/${commentId}/like`);
   return res.data;
